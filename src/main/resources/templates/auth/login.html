@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Login</title>
+</head>
+<body>
+<h2>Please sign in</h2>
+
+<!-- Messages from SecurityConfig redirects -->
+<div th:if="${param.error}">
+    <p style="color: red;">Login failed. Please check your email and password.</p>
+</div>
+<div th:if="${param.registered}">
+    <p style="color: green;">User registered successfully. You can now login.</p>
+</div>
+<div th:if="${param.logout}">
+    <p style="color: blue;">You have been logged out.</p>
+</div>
+
+<!-- Form submits to SecurityConfig.loginProcessingUrl("/doLogin")
+	Used by: AuthController.loginPage() → SecurityConfig.formLogin().loginPage("/login")
+
+
+ -->
+<form th:action="@{/doLogin}" method="post">
+    <p>
+        <label for="email">Email</label>
+        <input type="text" id="email" name="email" placeholder="Email" required autofocus>
+    </p>
+    <p>
+        <label for="password">Password</label>
+        <input type="password" id="password" name="password" placeholder="Password" required>
+    </p>
+    <button type="submit">Sign in</button>
+</form>
+
+<a th:href="@{/register}">New user? Register</a>
+</body>
+</html>

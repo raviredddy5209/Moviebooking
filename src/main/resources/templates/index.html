@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title th:text="${appName}">Movie Booking App</title>
+</head>
+<body>
+<h1 th:text="${appName}">Movie Booking App</h1>
+<p th:text="${message}">Welcome to BookMyShow‑style app!</p>
+<ul>
+    <li><a th:href="@{/login}">Login</a></li>
+    <li><a th:href="@{/register}">Register</a></li>
+</ul>
+</body>
+</html>
+
+
+

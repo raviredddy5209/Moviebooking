@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>User Home</title>
+</head>
+<body>
+<h1 th:text="${message}">User Home</h1>
+
+<p>Welcome, you are logged in as a user.</p>
+
+<ul>
+    <li><a th:href="@{/user/theatres}">Browse Theatres</a></li>
+    <li><a th:href="@{/user/bookings}">My Bookings</a></li>
+    <li><a th:href="@{/user/reviews}">My Reviews</a></li>
+</ul>
+
+<!-- Logout form  Used by: AuthController.postLogin() → return "user/home"
+
+
+	HomeController.home()           → templates/index.html
+	    ↓
+	AuthController.loginPage()      → templates/auth/login.html
+	AuthController.registerPage()   → templates/auth/register.html
+	AuthController.postLogin()      → templates/admin/dashboard.html
+	or templates/user/home.html
+
+	
+	
+	permitAll(): /, /login, /register
+	hasRole("ADMIN"): /admin/**
+	hasRole("USER"): /user/**
+	formLogin.loginPage("/login")
+	formLogin.loginProcessingUrl("/doLogin")
+	defaultSuccessUrl("/postLogin")
+
+
+
+
+
+
+-->
+<form th:action="@{/logout}" method="post">
+    <button type="submit">Logout</button>
+</form>
+</body>
+</html>

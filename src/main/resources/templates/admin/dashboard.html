@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Admin Dashboard</title>
+</head>
+<body>
+<h1 th:text="${message}">Admin Dashboard</h1>
+
+<p>Welcome, you are logged in as an admin.</p>
+
+<ul>
+    <li><a th:href="@{/admin/theatres}">Manage Theatres</a></li>
+    <li><a th:href="@{/admin/shows}">Manage Shows</a></li>
+</ul>
+
+<!-- Logout form (SecurityConfig.logout().logoutUrl("/logout")) 
+used by  AuthController.postLogin() → return "admin/dashboard"-->
+<form th:action="@{/logout}" method="post">
+    <button type="submit">Logout</button>
+</form>
+</body>
+</html>

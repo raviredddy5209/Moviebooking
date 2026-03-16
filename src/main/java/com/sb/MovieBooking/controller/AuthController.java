@@ -1,10 +1,12 @@
 package com.sb.MovieBooking.controller;
  
 
+import com.sb.MovieBooking.model.LoginRequest;
 import com.sb.MovieBooking.model.Role;
 import com.sb.MovieBooking.model.User;
 import com.sb.MovieBooking.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Controller;
@@ -12,6 +14,9 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 @Controller
 public class AuthController {
@@ -21,11 +26,27 @@ public class AuthController {
 
     @Autowired
     private PasswordEncoder passwordEncoder;
-
+ 
+    
     @GetMapping("/login")
     public String loginPage(Model model) {
         return "auth/login";
-    }/*
+    }
+
+//    @PostMapping("/login")
+//    public ResponseEntity<String>apiLogin(@RequestBody LoginRequest req, Authentication auth){
+//    	
+//    	if(auth.isAuthenticated()) {
+//    		String token  = "Bearer fake-jwt-" + auth.getName();//Real jwt later
+//    		return ResponseEntity.ok(token);
+//    	}
+//    	return ResponseEntity.status(401).body("unauthorised");
+//    	//LoginRequest = DTO for JSON binding. No more error!
+//    	
+//    }
+    
+ 
+    /*
     		serves templates/auth/login.html custom login page
     		spring security calls  this for /login GET REQUESTS
     */

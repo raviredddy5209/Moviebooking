@@ -51,12 +51,14 @@ public class SecurityConfig {
         http.csrf(csrf -> csrf.disable())
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/", "/css/**", "/js/**", "/register", "/login").permitAll()
-                .requestMatchers("/admin/**").hasRole("ADMIN")
+                .requestMatchers("/api/auth/**").permitAll()//login public
+             //   .requestMatchers("/admin/theaters/**").permitAll()
+                .requestMatchers("/admin/**").authenticated()//hasRole("ADMIN")//ala dmin protected
                 .requestMatchers("/user/**").hasRole("USER")
                 .anyRequest().authenticated()
             )
             .formLogin(form -> form
-                .loginPage("/login")
+                .loginPage("/login")//matches getmapping  login
                 .loginProcessingUrl("/doLogin")
                 .usernameParameter("email")
                 .passwordParameter("password")

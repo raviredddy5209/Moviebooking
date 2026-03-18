@@ -17,17 +17,15 @@ import com.sb.MovieBooking.repository.UserRepository;
 
 @Service
 public class CustomUserDetailsService  implements UserDetailsService{
-	
-	
-	
+	 
 	@Autowired
 	private   UserRepository userRepository;
-	
-	
+	 
+	public CustomUserDetailsService(UserRepository userRepository) {
+		// TODO Auto-generated constructor stub
+		this.userRepository = userRepository;
+	}
  
-
-
-
 	@Override
 	public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
 		// TODO Auto-generated method stub
@@ -45,17 +43,17 @@ User.builder() is Security 6 style (no deprecated constructor)
 	User user = userRepository.findByEmail(email)
 				.orElseThrow(() -> new UsernameNotFoundException("User not found" + email));
 	
-	
+	//sql select  user where email
 	Collection<GrantedAuthority> authorities = 
             List.of(new SimpleGrantedAuthority(user.getRole().name()));	
-	
-	
-	
+	 
 	return  org.springframework.security.core.userdetails.User.builder()
 			.username(user.getEmail())
-			.password(user.getPassword())
+			.password(user.getPassword()) //bycrypt hash from db
 			.authorities(authorities)
 			.build();
+	//this fetches the user row from MySQL and returns it as a `UserDetails` object.
+
 	}
 
 }

@@ -44,7 +44,9 @@ public class AuthController {
 //    	//LoginRequest = DTO for JSON binding. No more error!
 //    	
 //    }
-    
+    //OLD: static/index.html (Thymeleaf) → /login → form → postLogin
+//    NEW: static/index.html (JS) → API login → JS dashboard ✓
+
  
     /*
     		serves templates/auth/login.html custom login page
@@ -72,6 +74,15 @@ public class AuthController {
     * shows success message in login page
     *
     */
+    @GetMapping("/admin/dashboard")
+    public String adminDashboard() {
+        return "admin/dashboard";
+    }
+
+    @GetMapping("/user/home")
+    public String userHome() {
+        return "user/home";
+    }
 
     @GetMapping("/postLogin")
     public String postLogin(Authentication auth, Model model) {

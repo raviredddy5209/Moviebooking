@@ -17,7 +17,7 @@ public class HomeController {
 		 log.info("HomeController.home() called");
 		model.addAttribute("appName", "Movie Booking App");
 		model.addAttribute("message", "Welcome to BookMyShow");
-		return "index";
+		return "redirect:/index.html";
 		
 	/**	@Controller + @GetMapping("/") is the standard Spring MVC pattern for view‑based controllers in Spring Boot 3/4.
 

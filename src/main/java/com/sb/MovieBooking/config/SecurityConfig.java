@@ -3,6 +3,8 @@ package com.sb.MovieBooking.config;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.AuthenticationProvider;
+import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
@@ -13,6 +15,8 @@ import org.springframework.security.web.SecurityFilterChain;
 
 import com.sb.MovieBooking.repository.UserRepository;
 import com.sb.MovieBooking.service.CustomUserDetailsService;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+
  
 
 @Configuration
@@ -28,33 +32,80 @@ public class SecurityConfig {
 	  //  public UserDetailsService userDetailsService(UserRepository userRepository) {
 	  //      return new CustomUserDetailsService(userRepository);
 	  //  }
-	 
-	 
-	 
-    @Bean
+	private final JwtRequestFilter jwtRequestFilter;
+ 
+	public SecurityConfig(JwtRequestFilter jwtRequestFilter) {
+        this.jwtRequestFilter = jwtRequestFilter;
+    }
+     	 	@Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
+ 
+ //  @Bean
+   // public UserDetailsService userDetailsService(UserRepository userRepository) {
+     //   return new CustomUserDetailsService(userRepository);
+     // ✅ REMOVED the @Bean userDetailsService() factory method — that was the cycle root.
+        //    CustomUserDetailsService is already a bean via @Service; declaring it again here
+        //    caused SecurityConfig to "own" it, making JwtRequestFilter depend on SecurityConfig.
+   // }
+     	 	
+     	 	
+   /*step3
+    * DaoAuthenticationProvider does two things:
 
-   
+		Loads user from DB using UserDetailsService
+				Compares passwords using BCryptPasswordEncoder
+    * Step 4 — CustomUserDetailsService loads user from DB
+    * after step Step 5 — BCrypt password comparison
 
+		`DaoAuthenticationProvider` now compares passwords:
+```
+		User typed:       "1234"
+			DB has:           "$2a$10$xyz..."  (BCrypt hash of "1234") BCrypt.matches("1234", "$2a$10$xyz...") → true ✅
+
+    * 
+    * BCrypt never decrypts — it re-hashes "1234" and compares the hashes. This is why plain text passwords never need to be stored.
+    */
     @Bean
-    public AuthenticationManager authenticationManager(
-            AuthenticationConfiguration config) throws Exception {
+    public AuthenticationProvider authenticationProvider(UserDetailsService userDetailsService) {
+        DaoAuthenticationProvider provider = new DaoAuthenticationProvider(userDetailsService);
+       // provider.setUserDetailsService(userDetailsService);  // ✅ Setter exists
+        provider.setPasswordEncoder(passwordEncoder());
+        return provider;
+    }
+    @Bean
+    public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
         return config.getAuthenticationManager();
     }
-
+ 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) 
             throws Exception {
 
         http.csrf(csrf -> csrf.disable())
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/", "/css/**", "/js/**", "/register", "/login").permitAll()
-                .requestMatchers("/api/auth/**").permitAll()//login public
+                .requestMatchers("/", "/css/**", "/js/**", "/register", "/login","/postLogin").permitAll()
+                .requestMatchers("/api/auth/**").permitAll()//jwt login endpoint public
              //   .requestMatchers("/admin/theaters/**").permitAll()
-                .requestMatchers("/admin/**").authenticated()//hasRole("ADMIN")//ala dmin protected
+             // Protected APIs (JWT token required)
+               // .requestMatchers("/admin/theatres").hasRole("ADMIN")
+               // .requestMatchers("/admin/movies").hasRole("ADMIN")
+                .requestMatchers("/uploads/**").permitAll() //mv imgs public
+                .requestMatchers("/admin/dashboard", "/user/home").permitAll()
+                
+             // ✅ Admin protected APIs + pages
+                .requestMatchers("/admin/**").hasRole("ADMIN")
+
+                // ✅ User protected pages
                 .requestMatchers("/user/**").hasRole("USER")
+              //  .requestMatchers("/admin/theaters", "/admin/movies").hasRole("ADMIN")
+              //  .requestMatchers("/admin/movies/**").hasRole("ADMIN")
+              //  .requestMatchers("/admin/theaters/**").hasRole("ADMIN")
+                 // images public
+                //Role based pages
+              //  .requestMatchers("/admin/**").hasRole("ADMIN")//ala dmin protected
+             //   .requestMatchers("/user/**").hasRole("USER")
                 .anyRequest().authenticated()
             )
             .formLogin(form -> form
@@ -82,6 +133,12 @@ public class SecurityConfig {
 						deleteCookies("JSESSIONID"): Deletes session cookie.
                  * SessionCreationPolicy.IF_REQUIRED: Creates session only when needed (traditional login/logout flow).
 ​
+// Traditional login (session)
+POST /doLogin → Cookie → /user/home.html
+
+// API login (JWT)  
+POST /api/auth/login → localStorage token → JS fetch('/admin/theatres')
+
                  * 
                  * */
                 
@@ -89,7 +146,7 @@ public class SecurityConfig {
                 
             )
             .sessionManagement(session -> session
-                .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
+                .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)//jwt
             );
         
         		/**@Bean SecurityFilterChain is Spring Security 6 style (no deprecated WebSecurityConfigurerAdapter).
@@ -129,6 +186,8 @@ public class SecurityConfig {
 ​	
 
 					defaultSuccessUrl("/postLogin", true) always redirects to /postLogin after login.*/
+
+        http.addFilterBefore(jwtRequestFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }

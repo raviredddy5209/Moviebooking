@@ -5,12 +5,14 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.sb.MovieBooking.model.LoginRequest;
+import com.sb.MovieBooking.util.JwtUtil;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -18,7 +20,15 @@ public class ApiAuthController {
     
 	@Autowired
     private AuthenticationManager authManager;
-    
+	 @Autowired
+	    private JwtUtil jwtUtil;
+	 //from axio
+   //@RequestBody maps the JSON → LoginRequest object.
+	// Then hands it to authManager.authenticate().
+	 
+	 
+	// Step 3 — AuthenticationManager calls DaoAuthenticationProvider
+	// authManager.authenticate() internally triggers your SecurityConfig bean:
     @PostMapping("/login")
     public ResponseEntity<String> login(@RequestBody LoginRequest req) {
         Authentication auth = authManager.authenticate(
@@ -26,7 +36,17 @@ public class ApiAuthController {
                 req.getEmail(), req.getPassword()
             )
         );
-        String token = "Bearer " + auth.getName() + "-token";
-        return ResponseEntity.ok(token);
+        UserDetails userDetails = (UserDetails) auth.getPrincipal();//Step 6 — JWT token generated and returned
+        //JWT is built with email + role inside:
+//        json{
+//        	  "sub": "admin@example.com",
+//        	  "roles": [{ "authority": "ROLE_ADMIN" }],
+//        	  "iat": 1234567890,
+//        	  "exp": 1234567890
+//        	}
+//        	```
+        String jwtToken = jwtUtil.generateToken(userDetails);
+        
+        return ResponseEntity.ok("Bearer " + jwtToken);
     }
 }

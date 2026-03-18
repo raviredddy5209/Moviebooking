@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>MovieBooking</title>
+    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #0a0a0f;
+            --surface: #13131a;
+            --surface2: #1c1c28;
+            --accent: #e8ff47;
+            --accent2: #ff6b35;
+            --text: #f0f0f0;
+            --muted: #888;
+            --border: rgba(255,255,255,0.08);
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: 'DM Sans', sans-serif;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* ── BACKGROUND DECORATION ── */
+        body::before {
+            content: '';
+            position: fixed;
+            top: -200px;
+            right: -200px;
+            width: 600px;
+            height: 600px;
+            background: radial-gradient(circle, rgba(232,255,71,0.04) 0%, transparent 70%);
+            pointer-events: none;
+        }
+        body::after {
+            content: '';
+            position: fixed;
+            bottom: -200px;
+            left: -200px;
+            width: 500px;
+            height: 500px;
+            background: radial-gradient(circle, rgba(255,107,53,0.04) 0%, transparent 70%);
+            pointer-events: none;
+        }
+
+        /* ── LOGIN CARD ── */
+        .login-wrap {
+            width: 100%;
+            max-width: 420px;
+            padding: 1rem;
+        }
+        .login-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 2.5rem;
+            animation: fadeUp 0.4s ease;
+        }
+        @keyframes fadeUp {
+            from { transform: translateY(24px); opacity: 0; }
+            to   { transform: translateY(0);    opacity: 1; }
+        }
+
+        /* ── BRAND ── */
+        .brand {
+            font-family: 'Syne', sans-serif;
+            font-weight: 800;
+            font-size: 1.8rem;
+            letter-spacing: -1px;
+            margin-bottom: 0.3rem;
+        }
+        .brand span { color: var(--accent); }
+        .brand-sub {
+            font-size: 0.85rem;
+            color: var(--muted);
+            margin-bottom: 2rem;
+        }
+
+        /* ── FORM ── */
+        .form-group { margin-bottom: 1rem; }
+        .form-label {
+            display: block;
+            font-size: 0.75rem;
+            color: var(--muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-weight: 500;
+            margin-bottom: 6px;
+        }
+        .form-input {
+            width: 100%;
+            background: var(--surface2);
+            border: 1px solid var(--border);
+            color: var(--text);
+            padding: 12px 14px;
+            border-radius: 10px;
+            font-size: 0.95rem;
+            font-family: 'DM Sans', sans-serif;
+            outline: none;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+        .form-input:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(232,255,71,0.08);
+        }
+        .form-input::placeholder { color: #555; }
+
+        /* ── BUTTON ── */
+        .btn-login {
+            width: 100%;
+            background: var(--accent);
+            color: #000;
+            border: none;
+            padding: 13px;
+            border-radius: 10px;
+            font-size: 0.95rem;
+            font-weight: 700;
+            font-family: 'Syne', sans-serif;
+            cursor: pointer;
+            margin-top: 0.5rem;
+            transition: all 0.2s;
+            letter-spacing: 0.5px;
+        }
+        .btn-login:hover { background: #d4eb2e; transform: translateY(-1px); }
+        .btn-login:active { transform: translateY(0); }
+        .btn-login.loading {
+            background: var(--surface2);
+            color: var(--muted);
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* ── ERROR ── */
+        .error-msg {
+            background: rgba(255,68,68,0.1);
+            border: 1px solid rgba(255,68,68,0.2);
+            color: #ff8080;
+            padding: 10px 14px;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            margin-top: 1rem;
+            display: none;
+        }
+        .error-msg.show { display: block; }
+
+        /* ── DIVIDER ── */
+        .divider {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin: 1.5rem 0;
+            color: var(--muted);
+            font-size: 0.8rem;
+        }
+        .divider::before, .divider::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: var(--border);
+        }
+
+        /* ── REGISTER LINK ── */
+        .register-link {
+            text-align: center;
+            font-size: 0.85rem;
+            color: var(--muted);
+            margin-top: 1.2rem;
+        }
+        .register-link a {
+            color: var(--accent);
+            text-decoration: none;
+            font-weight: 500;
+        }
+        .register-link a:hover { text-decoration: underline; }
+
+        /* ── DEMO HINT ── */
+        .demo-hint {
+            background: rgba(232,255,71,0.05);
+            border: 1px solid rgba(232,255,71,0.1);
+            border-radius: 8px;
+            padding: 10px 14px;
+            margin-bottom: 1.5rem;
+            font-size: 0.8rem;
+            color: var(--muted);
+        }
+        .demo-hint strong { color: var(--accent); font-weight: 500; }
+
+        /* ── FILM STRIP DECORATION ── */
+        .film-strip {
+            display: flex;
+            gap: 4px;
+            margin-bottom: 1.5rem;
+        }
+        .film-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--border);
+        }
+        .film-dot:nth-child(1) { background: var(--accent); }
+        .film-dot:nth-child(2) { background: var(--accent2); }
+        .film-dot:nth-child(3) { background: rgba(232,255,71,0.4); }
+    </style>
+</head>
+<body>
+
+<div class="login-wrap">
+    <div class="login-card">
+
+        <div class="film-strip">
+            <div class="film-dot"></div>
+            <div class="film-dot"></div>
+            <div class="film-dot"></div>
+            <div class="film-dot"></div>
+            <div class="film-dot"></div>
+            <div class="film-dot"></div>
+            <div class="film-dot"></div>
+        </div>
+
+        <div class="brand">Movie<span>Booking</span></div>
+        <div class="brand-sub">Your cinema, your seat, your show.</div>
+
+        <div class="demo-hint">
+            <strong>Admin:</strong> admin@example.com &nbsp;|&nbsp;
+            <strong>User:</strong> your registered email
+        </div>
+
+        <div class="form-group">
+            <label class="form-label">Email</label>
+            <input class="form-input" id="email" type="email" placeholder="you@example.com" autofocus>
+        </div>
+        <div class="form-group">
+            <label class="form-label">Password</label>
+            <input class="form-input" id="pass" type="password" placeholder="••••••••"
+                onkeydown="if(event.key==='Enter') login()">
+        </div>
+
+        <button class="btn-login" id="loginBtn" onclick="login()">Sign In</button>
+
+        <div class="error-msg" id="errorMsg">
+            Invalid email or password. Please try again.
+        </div>
+
+        <div class="divider">or</div>
+
+        <div class="register-link">
+            New here? <a href="/register">Create an account</a>
+        </div>
+
+    </div>
+</div>
+
+<script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+<script>
+    let token;
+
+    // Auto-login if token exists
+    token = localStorage.getItem('token');
+    if (token) {
+        try {
+            axios.defaults.headers.common['Authorization'] = token;
+            const payload = JSON.parse(atob(token.split('.')[1]));
+            const isAdmin = payload.roles.some(r => r.authority === 'ROLE_ADMIN');
+            if (isAdmin) window.location.href = '/admin/dashboard';
+            else window.location.href = '/user/home';
+        } catch(e) {
+            localStorage.removeItem('token');
+        }
+    }
+
+    function login() {
+        const email = document.getElementById('email').value.trim();
+        const pass  = document.getElementById('pass').value;
+        const btn   = document.getElementById('loginBtn');
+        const err   = document.getElementById('errorMsg');
+
+        if (!email || !pass) {
+            err.textContent = 'Please enter email and password.';
+            err.classList.add('show');
+            return;
+        }
+
+        // Loading state
+        btn.textContent = 'Signing in...';
+        btn.classList.add('loading');
+        err.classList.remove('show');
+
+        axios.post('/api/auth/login', { email, password: pass })
+            .then(res => {
+                token = res.data;
+                localStorage.setItem('token', token);
+                axios.defaults.headers.common['Authorization'] = token;
+
+                // Decode JWT to check role
+                const payload = JSON.parse(atob(token.split('.')[1]));
+                const isAdmin = payload.roles.some(r => r.authority === 'ROLE_ADMIN');
+
+                // Redirect based on role
+                if (isAdmin) {
+                    window.location.href = '/admin/dashboard';
+                } else {
+                    window.location.href = '/user/home';
+                }
+            })
+            .catch(err => {
+                document.getElementById('errorMsg').textContent = 'Invalid email or password.';
+                document.getElementById('errorMsg').classList.add('show');
+                btn.textContent = 'Sign In';
+                btn.classList.remove('loading');
+            });
+    }
+</script>
+</body>
+</html>

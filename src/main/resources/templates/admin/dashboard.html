@@ -541,9 +541,20 @@ const token = localStorage.getItem('token');
 if (!token) window.location.href = '/login';
 axios.defaults.headers.common['Authorization'] = token;
 
+// ✅ New — clears token and goes to index.html (JWT login page)
 function logout() {
-  localStorage.removeItem('token');
-  window.location.href = '/login';
+    // ── Remove JWT token from localStorage ────────────────
+    // Without this token, next API call will fail
+    // User will be treated as unauthenticated
+    localStorage.removeItem('token');
+
+    // ── Clear axios default header ────────────────────────
+    // Removes Authorization: Bearer token from all future axios calls
+    delete axios.defaults.headers.common['Authorization'];
+
+    // ── Redirect to login page ────────────────────────────
+    // index.html is our JWT login page in static/ folder
+    window.location.href = '/index.html';
 }
 
 // ── TOAST ──────────────────────────────────────────────

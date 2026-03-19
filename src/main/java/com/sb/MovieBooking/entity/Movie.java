@@ -17,7 +17,7 @@ public class Movie {
     private String imagePath;     // for uploaded file option
     private int durationMinutes;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "theater_id")
     private Theater theater;
 

@@ -82,12 +82,37 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) 
             throws Exception {
-
+    	// ── Tell Spring what to do when unauthenticated user hits a protected page ──
+        // Instead of showing 403 error page, redirect to index.html
+        // This replaces the default Http403ForbiddenEntryPoint behaviour
         http.csrf(csrf -> csrf.disable())
+        .exceptionHandling(ex -> ex
+                .authenticationEntryPoint((request, response, authException) -> {
+                	 // ── Only redirect GET requests to login page ──────────────
+                    // POST/DELETE/PUT requests should return 401 JSON, not redirect
+                    // Otherwise error responses loop back to index.html
+                	if ("GET".equals(request.getMethod())) {
+                        response.sendRedirect("/index.html");
+                    } else {
+                        // ── Return 401 JSON for API calls ─────────────────────
+                        response.setStatus(401);
+                        response.setContentType("application/json");
+                        response.getWriter().write("{\"error\":\"Unauthorized\"}");
+                    }
+                    //response.sendRedirect("/index.html");
+                })
+            )
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/", "/css/**", "/js/**", "/register", "/login","/postLogin").permitAll()
+                .requestMatchers("/", "/index.html","/favicon.ico","/css/**", "/js/**", "/register", "/login","/postLogin").permitAll()
                 .requestMatchers("/api/auth/**").permitAll()//jwt login endpoint public
-             //   .requestMatchers("/admin/theaters/**").permitAll()
+             //// ── /public/** permitAll ───────────────────────────────────────────────
+             // Any URL starting with /public is accessible without login
+             // This covers:
+             // /public/movies       → Now Showing page
+             // /public/movies/{id}/shows → Show timings
+             // /public/search?q=    → Search movies + theaters
+             .requestMatchers("/public/**").permitAll()
+                //   .requestMatchers("/admin/theaters/**").permitAll()
              // Protected APIs (JWT token required)
                // .requestMatchers("/admin/theatres").hasRole("ADMIN")
                // .requestMatchers("/admin/movies").hasRole("ADMIN")
@@ -108,7 +133,7 @@ public class SecurityConfig {
              //   .requestMatchers("/user/**").hasRole("USER")
                 .anyRequest().authenticated()
             )
-            .formLogin(form -> form
+        /*    .formLogin(form -> form
                 .loginPage("/login")//matches getmapping  login
                 .loginProcessingUrl("/doLogin")
                 .usernameParameter("email")
@@ -122,7 +147,7 @@ public class SecurityConfig {
                 .logoutSuccessUrl("/login?logout=true")
                 .invalidateHttpSession(true)
                 .deleteCookies("JSESSIONID")
-                .permitAll()
+                .permitAll()*/
                 /**
                  * logoutUrl("/logout"): Form POST to /logout logs out user.
 
@@ -144,9 +169,9 @@ POST /api/auth/login → localStorage token → JS fetch('/admin/theatres')
                 
                 
                 
-            )
+         //   )
             .sessionManagement(session -> session
-                .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)//jwt
+                .sessionCreationPolicy(SessionCreationPolicy.STATELESS)//jwt
             );
         
         		/**@Bean SecurityFilterChain is Spring Security 6 style (no deprecated WebSecurityConfigurerAdapter).
@@ -186,7 +211,9 @@ POST /api/auth/login → localStorage token → JS fetch('/admin/theatres')
 ​	
 
 					defaultSuccessUrl("/postLogin", true) always redirects to /postLogin after login.*/
-
+     // ── Add JWT filter before username/password filter ─────────────
+        // JwtRequestFilter runs first on every request
+        // It reads Authorization header, validates token, sets SecurityContext
         http.addFilterBefore(jwtRequestFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();

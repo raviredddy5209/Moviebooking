@@ -28,10 +28,10 @@ public class AuthController {
     private PasswordEncoder passwordEncoder;
  
     
-    @GetMapping("/login")
-    public String loginPage(Model model) {
-        return "auth/login";
-    }
+//    @GetMapping("/login")
+//    public String loginPage(Model model) {
+//        return "auth/login";
+//    }
 
 //    @PostMapping("/login")
 //    public ResponseEntity<String>apiLogin(@RequestBody LoginRequest req, Authentication auth){
@@ -84,7 +84,7 @@ public class AuthController {
         return "user/home";
     }
 
-    @GetMapping("/postLogin")
+    /* @GetMapping("/postLogin")
     public String postLogin(Authentication auth, Model model) {
         boolean isAdmin = auth.getAuthorities().stream()
                 .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
@@ -95,13 +95,13 @@ public class AuthController {
         } else {
             model.addAttribute("message", "Welcome User!");
             return "user/home";
-        }/*Authentication auth: Spring Security passes current user’s authorities.
+        }Authentication auth: Spring Security passes current user’s authorities.
 
 				auth.getAuthorities() contains ROLE_ADMIN or ROLE_USER.
 
 				Redirects to different dashboards based on role.*/
     }
-}
+
 
 								/*Browser → /login
     									↓

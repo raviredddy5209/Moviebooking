@@ -1,46 +1,1021 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html lang="en">
 <head>
-    <title>User Home</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MovieBooking — Now Showing</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --primary: #e8184a;
+  --primary-dark: #c0103a;
+  --primary-light: #ff6b8e;
+  --pink-soft: #fff0f3;
+  --pink-mid: #ffd6e0;
+  --white: #ffffff;
+  --gray: #f7f7f7;
+  --text: #1a1a1a;
+  --muted: #888;
+  --border: #f0e0e4;
+  --shadow: rgba(232,24,74,0.12);
+  --card-shadow: 0 4px 24px rgba(0,0,0,0.08);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: var(--white); color: var(--text); font-family: 'Plus Jakarta Sans', sans-serif; min-height: 100vh; }
+
+/* ── NAVBAR ── */
+nav {
+  background: var(--white);
+  border-bottom: 1px solid var(--border);
+  position: sticky;
+  top: 0;
+  z-index: 200;
+  box-shadow: 0 2px 16px var(--shadow);
+}
+.nav-inner {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 0 1.5rem;
+  height: 64px;
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+}
+.nav-brand {
+  font-family: 'Playfair Display', serif;
+  font-weight: 800;
+  font-size: 1.4rem;
+  color: var(--primary);
+  white-space: nowrap;
+  text-decoration: none;
+}
+.nav-brand span { color: var(--text); }
+
+/* Search bar */
+.search-wrap {
+  flex: 1;
+  max-width: 480px;
+  position: relative;
+}
+.search-input {
+  width: 100%;
+  padding: 10px 16px 10px 42px;
+  border: 1.5px solid var(--border);
+  border-radius: 50px;
+  font-size: 0.9rem;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  background: var(--pink-soft);
+  color: var(--text);
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+.search-input:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(232,24,74,0.08);
+  background: var(--white);
+}
+.search-input::placeholder { color: #bbb; }
+.search-icon {
+  position: absolute;
+  left: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--muted);
+  font-size: 1rem;
+  pointer-events: none;
+}
+.search-results {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  right: 0;
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  box-shadow: var(--card-shadow);
+  max-height: 360px;
+  overflow-y: auto;
+  display: none;
+  z-index: 300;
+}
+.search-results.open { display: block; }
+.search-section-title {
+  padding: 10px 16px 4px;
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--muted);
+  font-weight: 600;
+}
+.search-item {
+  padding: 10px 16px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  transition: background 0.15s;
+  font-size: 0.9rem;
+}
+.search-item:hover { background: var(--pink-soft); }
+.search-item-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  background: var(--pink-mid);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.9rem;
+  flex-shrink: 0;
+}
+.search-empty { padding: 1.5rem; text-align: center; color: var(--muted); font-size: 0.85rem; }
+
+/* Location pill */
+.location-pill {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--pink-soft);
+  border: 1px solid var(--pink-mid);
+  border-radius: 50px;
+  padding: 6px 14px;
+  font-size: 0.82rem;
+  color: var(--primary);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.2s;
+  font-weight: 500;
+}
+.location-pill:hover { background: var(--pink-mid); }
+.location-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--primary);
+  animation: pulse 2s infinite;
+}
+@keyframes pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.5; transform: scale(0.8); }
+}
+
+/* Profile */
+.profile-wrap { position: relative; }
+.profile-btn {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--primary), var(--primary-light));
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-weight: 700;
+  font-size: 0.9rem;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  transition: transform 0.2s;
+  flex-shrink: 0;
+}
+.profile-btn:hover { transform: scale(1.08); }
+.profile-dropdown {
+  position: absolute;
+  top: calc(100% + 10px);
+  right: 0;
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  box-shadow: var(--card-shadow);
+  width: 260px;
+  display: none;
+  z-index: 300;
+  overflow: hidden;
+  animation: dropIn 0.15s ease;
+}
+@keyframes dropIn { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: translateY(0); } }
+.profile-dropdown.open { display: block; }
+.profile-header {
+  background: linear-gradient(135deg, var(--primary), var(--primary-light));
+  padding: 1.2rem;
+  color: white;
+}
+.profile-name { font-weight: 700; font-size: 1rem; margin-bottom: 2px; }
+.profile-email { font-size: 0.78rem; opacity: 0.85; }
+.profile-menu-item {
+  padding: 12px 16px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 0.88rem;
+  transition: background 0.15s;
+  border-top: 1px solid var(--border);
+}
+.profile-menu-item:hover { background: var(--pink-soft); }
+.profile-menu-item.danger { color: var(--primary); }
+.menu-icon { font-size: 1rem; width: 20px; text-align: center; }
+
+/* ── HERO ── */
+.hero {
+  background: linear-gradient(135deg, var(--primary) 0%, #ff6b8e 50%, #ffb3c6 100%);
+  padding: 2.5rem 1.5rem;
+  text-align: center;
+  color: white;
+}
+.hero h1 {
+  font-family: 'Playfair Display', serif;
+  font-size: 2.2rem;
+  font-weight: 800;
+  margin-bottom: 0.5rem;
+}
+.hero p { font-size: 1rem; opacity: 0.9; }
+
+/* ── LOCATION MODAL ── */
+.modal-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.5);
+  z-index: 1000;
+  align-items: center;
+  justify-content: center;
+  backdrop-filter: blur(4px);
+}
+.modal-overlay.open { display: flex; }
+.modal-box {
+  background: var(--white);
+  border-radius: 20px;
+  padding: 2rem;
+  width: 100%;
+  max-width: 400px;
+  animation: slideUp 0.2s ease;
+}
+@keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+.modal-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.3rem;
+  font-weight: 700;
+  margin-bottom: 1rem;
+  color: var(--primary);
+}
+.city-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-bottom: 1rem;
+}
+.city-btn {
+  padding: 10px;
+  border: 1.5px solid var(--border);
+  border-radius: 10px;
+  background: var(--pink-soft);
+  color: var(--text);
+  font-size: 0.88rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-weight: 500;
+}
+.city-btn:hover, .city-btn.active { border-color: var(--primary); background: var(--primary); color: white; }
+.btn-detect {
+  width: 100%;
+  padding: 11px;
+  background: var(--primary);
+  color: white;
+  border: none;
+  border-radius: 10px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+.btn-detect:hover { background: var(--primary-dark); }
+
+/* ── MAIN CONTENT ── */
+.main { max-width: 1280px; margin: 0 auto; padding: 2rem 1.5rem; }
+
+/* Section header */
+.section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1.5rem;
+}
+.section-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.6rem;
+  font-weight: 700;
+}
+.section-title span { color: var(--primary); }
+.sort-select {
+  padding: 8px 14px;
+  border: 1.5px solid var(--border);
+  border-radius: 50px;
+  font-size: 0.82rem;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  color: var(--text);
+  background: var(--pink-soft);
+  outline: none;
+  cursor: pointer;
+}
+
+/* ── MOVIE GRID ── */
+.movies-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 1.5rem;
+}
+.movie-card {
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  overflow: hidden;
+  cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s;
+  animation: fadeCard 0.4s ease both;
+}
+@keyframes fadeCard { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
+.movie-card:hover { transform: translateY(-4px); box-shadow: 0 12px 32px var(--shadow); }
+.movie-poster {
+  width: 100%;
+  height: 280px;
+  object-fit: cover;
+  display: block;
+  background: var(--pink-soft);
+}
+.movie-poster-placeholder {
+  width: 100%;
+  height: 280px;
+  background: linear-gradient(135deg, var(--pink-soft), var(--pink-mid));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 3rem;
+}
+.movie-info { padding: 12px 14px; }
+.movie-title {
+  font-weight: 700;
+  font-size: 0.95rem;
+  margin-bottom: 4px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.movie-meta { font-size: 0.78rem; color: var(--muted); margin-bottom: 8px; }
+.movie-stars { display: flex; gap: 2px; margin-bottom: 8px; }
+.star { color: #ddd; font-size: 0.85rem; }
+.star.filled { color: #f59e0b; }
+.movie-theaters-count {
+  font-size: 0.75rem;
+  color: var(--primary);
+  font-weight: 600;
+}
+.btn-book {
+  width: 100%;
+  padding: 9px;
+  background: var(--primary);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  transition: all 0.2s;
+  margin-top: 8px;
+}
+.btn-book:hover { background: var(--primary-dark); }
+
+/* ── SHOWS PANEL ── */
+.shows-panel {
+  display: none;
+  background: var(--pink-soft);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 1.5rem;
+  margin-bottom: 2rem;
+  animation: slideDown 0.25s ease;
+}
+@keyframes slideDown { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+.shows-panel.open { display: block; }
+.shows-panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1.2rem;
+}
+.shows-panel-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: var(--primary);
+}
+.btn-close-panel {
+  background: none;
+  border: none;
+  color: var(--muted);
+  font-size: 1.2rem;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 6px;
+  transition: background 0.15s;
+}
+.btn-close-panel:hover { background: var(--pink-mid); }
+.theater-shows-card {
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 1rem 1.2rem;
+  margin-bottom: 1rem;
+}
+.theater-shows-name {
+  font-weight: 700;
+  font-size: 0.95rem;
+  margin-bottom: 4px;
+}
+.theater-shows-city {
+  font-size: 0.78rem;
+  color: var(--muted);
+  margin-bottom: 10px;
+}
+.pricing-badges { display: flex; gap: 8px; margin-bottom: 10px; flex-wrap: wrap; }
+.price-badge {
+  padding: 3px 10px;
+  border-radius: 20px;
+  font-size: 0.73rem;
+  font-weight: 600;
+}
+.price-gold { background: #fff8e1; color: #b45309; border: 1px solid #fde68a; }
+.price-silver { background: #f1f5f9; color: #475569; border: 1px solid #cbd5e1; }
+.price-diamond { background: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe; }
+.show-times { display: flex; gap: 8px; flex-wrap: wrap; }
+.show-time-btn {
+  padding: 7px 14px;
+  border: 1.5px solid var(--border);
+  border-radius: 8px;
+  background: var(--white);
+  font-size: 0.82rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  color: var(--text);
+}
+.show-time-btn:hover {
+  border-color: var(--primary);
+  background: var(--primary);
+  color: white;
+}
+.no-shows { font-size: 0.85rem; color: var(--muted); font-style: italic; }
+
+/* ── EMPTY STATE ── */
+.empty-state {
+  text-align: center;
+  padding: 4rem 2rem;
+  color: var(--muted);
+}
+.empty-icon { font-size: 3rem; margin-bottom: 1rem; opacity: 0.5; }
+
+/* ── LOADING ── */
+.skeleton-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 1.5rem;
+}
+.skeleton-card {
+  border-radius: 16px;
+  overflow: hidden;
+  border: 1px solid var(--border);
+}
+.skeleton-img {
+  height: 280px;
+  background: linear-gradient(90deg, #f0f0f0 25%, #e8e8e8 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
+.skeleton-text {
+  height: 14px;
+  margin: 12px 14px 8px;
+  border-radius: 7px;
+  background: linear-gradient(90deg, #f0f0f0 25%, #e8e8e8 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
+.skeleton-text.short { width: 60%; margin-bottom: 14px; }
+@keyframes shimmer { to { background-position: -200% 0; } }
+
+/* ── CHANGE PASSWORD MODAL ── */
+.form-group { margin-bottom: 1rem; }
+.form-label { display: block; font-size: 0.78rem; color: var(--muted); margin-bottom: 5px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.5px; }
+.form-input {
+  width: 100%;
+  padding: 10px 14px;
+  border: 1.5px solid var(--border);
+  border-radius: 10px;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: 0.9rem;
+  outline: none;
+  transition: border-color 0.2s;
+}
+.form-input:focus { border-color: var(--primary); }
+.btn-primary {
+  width: 100%;
+  padding: 11px;
+  background: var(--primary);
+  color: white;
+  border: none;
+  border-radius: 10px;
+  font-weight: 600;
+  font-size: 0.9rem;
+  cursor: pointer;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  transition: background 0.2s;
+}
+.btn-primary:hover { background: var(--primary-dark); }
+
+/* ── TOAST ── */
+.toast {
+  position: fixed;
+  bottom: 2rem;
+  right: 2rem;
+  background: var(--text);
+  color: white;
+  padding: 12px 20px;
+  border-radius: 12px;
+  font-size: 0.88rem;
+  z-index: 9999;
+  transform: translateY(80px);
+  opacity: 0;
+  transition: all 0.3s;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.toast.show { transform: translateY(0); opacity: 1; }
+.toast.success { background: #16a34a; }
+.toast.error { background: var(--primary); }
+</style>
 </head>
 <body>
-<h1 th:text="${message}">User Home</h1>
 
-<p>Welcome, you are logged in as a user.</p>
+<!-- ── NAVBAR ── -->
+<nav>
+  <div class="nav-inner">
+    <a class="nav-brand" href="#">Movie<span>Booking</span></a>
 
-<ul>
-    <li><a th:href="@{/user/theatres}">Browse Theatres</a></li>
-    <li><a th:href="@{/user/bookings}">My Bookings</a></li>
-    <li><a th:href="@{/user/reviews}">My Reviews</a></li>
-</ul>
+    <div class="search-wrap">
+      <span class="search-icon">🔍</span>
+      <input class="search-input" id="searchInput" placeholder="Search movies or theatres..."
+        oninput="handleSearch(this.value)" onfocus="openSearch()" autocomplete="off">
+      <div class="search-results" id="searchResults"></div>
+    </div>
 
-<!-- Logout form  Used by: AuthController.postLogin() → return "user/home"
+    <div class="location-pill" onclick="openLocationModal()">
+      <div class="location-dot"></div>
+      <span id="locationLabel">Detecting...</span>
+    </div>
 
+    <div class="profile-wrap">
+      <button class="profile-btn" id="profileBtn" onclick="toggleProfile()">
+        <span id="profileInitial">U</span>
+      </button>
+      <div class="profile-dropdown" id="profileDropdown">
+        <div class="profile-header">
+          <div class="profile-name" id="profileName">Loading...</div>
+          <div class="profile-email" id="profileEmail">...</div>
+        </div>
+        <div class="profile-menu-item" onclick="showBookings()">
+          <span class="menu-icon">🎟️</span> My Bookings
+        </div>
+        <div class="profile-menu-item" onclick="openChangePassword()">
+          <span class="menu-icon">🔑</span> Change Password
+        </div>
+        <div class="profile-menu-item danger" onclick="logout()">
+          <span class="menu-icon">🚪</span> Logout
+        </div>
+      </div>
+    </div>
+  </div>
+</nav>
 
-	HomeController.home()           → templates/index.html
-	    ↓
-	AuthController.loginPage()      → templates/auth/login.html
-	AuthController.registerPage()   → templates/auth/register.html
-	AuthController.postLogin()      → templates/admin/dashboard.html
-	or templates/user/home.html
+<!-- ── HERO ── -->
+<div class="hero">
+  <h1>What are you watching today?</h1>
+  <p id="heroSub">Find movies near you and book your seats instantly</p>
+</div>
 
-	
-	
-	permitAll(): /, /login, /register
-	hasRole("ADMIN"): /admin/**
-	hasRole("USER"): /user/**
-	formLogin.loginPage("/login")
-	formLogin.loginProcessingUrl("/doLogin")
-	defaultSuccessUrl("/postLogin")
+<!-- ── MAIN ── -->
+<div class="main">
 
+  <!-- Shows panel (appears when movie clicked) -->
+  <div class="shows-panel" id="showsPanel">
+    <div class="shows-panel-header">
+      <div class="shows-panel-title" id="showsPanelTitle">Shows</div>
+      <button class="btn-close-panel" onclick="closeShowsPanel()">✕</button>
+    </div>
+    <div id="showsContent"></div>
+  </div>
 
+  <!-- Section header -->
+  <div class="section-header">
+    <div class="section-title">Now <span>Showing</span></div>
+    <select class="sort-select" id="sortSelect" onchange="sortMovies(this.value)">
+      <option value="default">All Movies</option>
+      <option value="rating">Top Rated</option>
+      <option value="az">A → Z</option>
+      <option value="duration">Shortest First</option>
+    </select>
+  </div>
 
+  <!-- Skeleton loader -->
+  <div class="skeleton-grid" id="skeletonGrid">
+    ${Array(8).fill(`
+      <div class="skeleton-card">
+        <div class="skeleton-img"></div>
+        <div class="skeleton-text"></div>
+        <div class="skeleton-text short"></div>
+      </div>
+    `).join('')}
+  </div>
 
+  <!-- Movies grid -->
+  <div class="movies-grid" id="moviesGrid" style="display:none"></div>
 
+</div>
 
--->
-<form th:action="@{/logout}" method="post">
-    <button type="submit">Logout</button>
-</form>
+<!-- ── LOCATION MODAL ── -->
+<div class="modal-overlay" id="locationModal">
+  <div class="modal-box">
+    <div class="modal-title">📍 Choose Your City</div>
+    <button class="btn-detect" onclick="detectLocation()" style="margin-bottom:1rem">
+      📡 Auto-detect my location
+    </button>
+    <div style="font-size:0.8rem;color:var(--muted);text-align:center;margin-bottom:1rem">— or select manually —</div>
+    <div class="city-grid" id="cityGrid"></div>
+    <button onclick="closeModal('locationModal')" style="width:100%;padding:10px;border:1.5px solid var(--border);border-radius:10px;background:none;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;margin-top:8px;font-size:0.88rem">Cancel</button>
+  </div>
+</div>
+
+<!-- ── CHANGE PASSWORD MODAL ── -->
+<div class="modal-overlay" id="pwModal">
+  <div class="modal-box">
+    <div class="modal-title">🔑 Change Password</div>
+    <div class="form-group">
+      <label class="form-label">Current Password</label>
+      <input class="form-input" type="password" id="pwCurrent" placeholder="••••••••">
+    </div>
+    <div class="form-group">
+      <label class="form-label">New Password</label>
+      <input class="form-input" type="password" id="pwNew" placeholder="••••••••">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Confirm New Password</label>
+      <input class="form-input" type="password" id="pwConfirm" placeholder="••••••••">
+    </div>
+    <button class="btn-primary" onclick="changePassword()">Update Password</button>
+    <button onclick="closeModal('pwModal')" style="width:100%;padding:10px;border:none;background:none;cursor:pointer;color:var(--muted);margin-top:8px;font-family:'Plus Jakarta Sans',sans-serif">Cancel</button>
+  </div>
+</div>
+
+<!-- ── TOAST ── -->
+<div class="toast" id="toast"></div>
+
+<script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+<script>
+// ── AUTH CHECK ──────────────────────────────────────────
+const token = localStorage.getItem('token');
+if (!token) window.location.href = '/index.html';
+axios.defaults.headers.common['Authorization'] = token;
+
+// Decode user info from token
+let userInfo = { name: 'User', email: '' };
+try {
+    const payload = JSON.parse(atob(token.split('.')[1]));
+    userInfo.email = payload.sub || '';
+    userInfo.name = userInfo.email.split('@')[0] || 'User';
+    document.getElementById('profileInitial').textContent = userInfo.name[0].toUpperCase();
+    document.getElementById('profileName').textContent = userInfo.name.charAt(0).toUpperCase() + userInfo.name.slice(1);
+    document.getElementById('profileEmail').textContent = userInfo.email;
+} catch(e) {}
+
+// ── STATE ───────────────────────────────────────────────
+let allMovies = [];
+let currentCity = '';
+let selectedMovieId = null;
+
+// ── TOAST ───────────────────────────────────────────────
+function showToast(msg, type = 'success') {
+    const t = document.getElementById('toast');
+    t.textContent = (type === 'success' ? '✓ ' : '✕ ') + msg;
+    t.className = 'toast show ' + type;
+    setTimeout(() => t.className = 'toast', 3000);
+}
+
+// ── MODAL ───────────────────────────────────────────────
+function openModal(id) { document.getElementById(id).classList.add('open'); }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+document.querySelectorAll('.modal-overlay').forEach(m => {
+    m.addEventListener('click', e => { if (e.target === m) m.classList.remove('open'); });
+});
+
+// ── PROFILE ─────────────────────────────────────────────
+function toggleProfile() {
+    document.getElementById('profileDropdown').classList.toggle('open');
+}
+document.addEventListener('click', e => {
+    if (!e.target.closest('.profile-wrap')) {
+        document.getElementById('profileDropdown').classList.remove('open');
+    }
+    if (!e.target.closest('.search-wrap')) {
+        document.getElementById('searchResults').classList.remove('open');
+    }
+});
+
+function logout() {
+    localStorage.removeItem('token');
+    delete axios.defaults.headers.common['Authorization'];
+    window.location.href = '/index.html';
+}
+
+function showBookings() {
+    closeModal('profileDropdown');
+    document.getElementById('profileDropdown').classList.remove('open');
+    showToast('Bookings feature coming soon!');
+}
+
+function openChangePassword() {
+    document.getElementById('profileDropdown').classList.remove('open');
+    openModal('pwModal');
+}
+
+function changePassword() {
+    const cur = document.getElementById('pwCurrent').value;
+    const nw = document.getElementById('pwNew').value;
+    const conf = document.getElementById('pwConfirm').value;
+    if (!cur || !nw || !conf) { showToast('Fill all fields', 'error'); return; }
+    if (nw !== conf) { showToast('Passwords do not match', 'error'); return; }
+    showToast('Password updated!');
+    closeModal('pwModal');
+}
+
+// ── LOCATION ────────────────────────────────────────────
+function openLocationModal() {
+    // Populate city grid from movies
+    const cities = [...new Set(allMovies.flatMap(m => m.theater ? [m.theater.city] : []))];
+    const allCities = cities.length ? cities : ['Hyderabad', 'Mumbai', 'Bangalore', 'Chennai', 'Delhi', 'Pune'];
+    const grid = document.getElementById('cityGrid');
+    grid.innerHTML = allCities.map(c =>
+        `<button class="city-btn ${c === currentCity ? 'active' : ''}" onclick="selectCity('${c}')">${c}</button>`
+    ).join('');
+    openModal('locationModal');
+}
+
+function selectCity(city) {
+    currentCity = city;
+    document.getElementById('locationLabel').textContent = city;
+    document.getElementById('heroSub').textContent = `Showing movies in ${city}`;
+    closeModal('locationModal');
+    filterAndRender();
+}
+
+function detectLocation() {
+    if (!navigator.geolocation) {
+        showToast('Geolocation not supported', 'error');
+        return;
+    }
+    document.getElementById('locationLabel').textContent = 'Locating...';
+    navigator.geolocation.getCurrentPosition(
+        pos => {
+            // In real app, reverse geocode. For now use Hyderabad as default
+            fetch(`https://nominatim.openstreetmap.org/reverse?lat=${pos.coords.latitude}&lon=${pos.coords.longitude}&format=json`)
+                .then(r => r.json())
+                .then(data => {
+                    const city = data.address.city || data.address.town || data.address.state_district || 'Your City';
+                    selectCity(city);
+                    closeModal('locationModal');
+                })
+                .catch(() => {
+                    selectCity('Hyderabad');
+                    closeModal('locationModal');
+                });
+        },
+        () => {
+            showToast('Could not detect location', 'error');
+            document.getElementById('locationLabel').textContent = 'Select City';
+        }
+    );
+}
+
+// ── LOAD MOVIES ─────────────────────────────────────────
+async function loadMovies() {
+    try {
+        const res = await axios.get('/public/movies');
+        allMovies = res.data;
+
+        // Hide skeleton, show grid
+        document.getElementById('skeletonGrid').style.display = 'none';
+        document.getElementById('moviesGrid').style.display = 'grid';
+
+        // Set initial city from first movie's theater
+        if (!currentCity && allMovies.length) {
+            const firstCity = allMovies[0].theater?.city || 'Hyderabad';
+            currentCity = firstCity;
+            document.getElementById('locationLabel').textContent = firstCity;
+            document.getElementById('heroSub').textContent = `Showing movies in ${firstCity}`;
+        }
+
+        filterAndRender();
+    } catch(e) {
+        document.getElementById('skeletonGrid').style.display = 'none';
+        document.getElementById('moviesGrid').style.display = 'grid';
+        document.getElementById('moviesGrid').innerHTML =
+            '<div class="empty-state"><div class="empty-icon">🎬</div><div>No movies found. Check back soon!</div></div>';
+    }
+}
+
+function filterAndRender() {
+    let movies = [...allMovies];
+    const sort = document.getElementById('sortSelect').value;
+    if (sort === 'az') movies.sort((a, b) => a.title.localeCompare(b.title));
+    if (sort === 'duration') movies.sort((a, b) => a.durationMinutes - b.durationMinutes);
+    if (sort === 'rating') movies.sort((a, b) => getRating(b.id) - getRating(a.id));
+    renderMovies(movies);
+}
+
+function sortMovies(val) { filterAndRender(); }
+
+// ── STAR RATINGS ────────────────────────────────────────
+function getRating(id) {
+    return parseFloat(localStorage.getItem('rating_' + id)) || 0;
+}
+function renderStarDisplay(rating) {
+    return [1,2,3,4,5].map(i =>
+        `<span class="star ${i <= Math.round(rating) ? 'filled' : ''}">★</span>`
+    ).join('');
+}
+
+// ── RENDER MOVIES ────────────────────────────────────────
+function renderMovies(movies) {
+    const grid = document.getElementById('moviesGrid');
+    if (!movies.length) {
+        grid.innerHTML = '<div class="empty-state"><div class="empty-icon">🎬</div><div>No movies found</div></div>';
+        return;
+    }
+    grid.innerHTML = movies.map((m, i) => {
+        const img = m.imageUrl || m.imagePath;
+        const rating = getRating(m.id);
+        return `
+        <div class="movie-card" style="animation-delay:${i * 0.05}s" onclick="openShows(${m.id}, '${m.title.replace(/'/g,"\\'")}')">
+            ${img
+                ? `<img class="movie-poster" src="${img}" alt="${m.title}" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">`
+                : ''
+            }
+            <div class="movie-poster-placeholder" ${img ? 'style="display:none"' : ''}>🎬</div>
+            <div class="movie-info">
+                <div class="movie-title" title="${m.title}">${m.title}</div>
+                <div class="movie-meta">${m.durationMinutes} min${m.theater ? ' · ' + m.theater.city : ''}</div>
+                <div class="movie-stars">${renderStarDisplay(rating)}</div>
+                <button class="btn-book" onclick="event.stopPropagation();openShows(${m.id},'${m.title.replace(/'/g,"\\'")}')">Book Now</button>
+            </div>
+        </div>`;
+    }).join('');
+}
+
+// ── SHOWS PANEL ──────────────────────────────────────────
+async function openShows(movieId, movieTitle) {
+    const panel = document.getElementById('showsPanel');
+    const content = document.getElementById('showsContent');
+    document.getElementById('showsPanelTitle').textContent = `🎬 ${movieTitle} — Select a Show`;
+
+    panel.classList.add('open');
+    panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    content.innerHTML = '<div style="text-align:center;padding:2rem;color:var(--muted)">Loading shows...</div>';
+
+    try {
+        const res = await axios.get(`/public/movies/${movieId}/shows`);
+        const shows = res.data;
+
+        if (!shows.length) {
+            content.innerHTML = '<div class="no-shows">No shows scheduled for this movie yet.</div>';
+            return;
+        }
+
+        // Group by theater
+        const byTheater = {};
+        shows.forEach(s => {
+            const tid = s.theater?.id || 'unknown';
+            if (!byTheater[tid]) byTheater[tid] = { theater: s.theater, shows: [] };
+            byTheater[tid].shows.push(s);
+        });
+
+        content.innerHTML = Object.values(byTheater).map(group => {
+            const t = group.theater || {};
+            const times = group.shows.map(s => {
+                const dt = new Date(s.showTime);
+                const time = dt.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' });
+                const date = dt.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' });
+                return `<button class="show-time-btn" onclick="selectShow(${s.id}, '${time}', '${t.name || ''}', ${movieId})">${date} ${time}</button>`;
+            }).join('');
+
+            return `
+            <div class="theater-shows-card">
+                <div class="theater-shows-name">${t.name || 'Theater'}</div>
+                <div class="theater-shows-city">📍 ${t.city || ''} · ${t.totalSeats || ''} seats</div>
+                <div class="pricing-badges">
+                    <span class="price-badge price-gold">🥇 Gold ₹${group.shows[0]?.goldPrice || '--'}</span>
+                    <span class="price-badge price-silver">🥈 Silver ₹${group.shows[0]?.silverPrice || '--'}</span>
+                    <span class="price-badge price-diamond">💎 Diamond ₹${group.shows[0]?.diamondPrice || '--'}</span>
+                </div>
+                <div class="show-times">${times}</div>
+            </div>`;
+        }).join('');
+
+    } catch(e) {
+        content.innerHTML = '<div class="no-shows">Failed to load shows.</div>';
+    }
+}
+
+function closeShowsPanel() {
+    document.getElementById('showsPanel').classList.remove('open');
+}
+
+function selectShow(showId, time, theater, movieId) {
+    // Will navigate to seat selection page
+    localStorage.setItem('selectedShow', JSON.stringify({ showId, time, theater, movieId }));
+    showToast(`Show selected: ${theater} at ${time} — Seat selection coming next!`);
+    // window.location.href = `/user/seats?showId=${showId}`;  ← uncomment when seats page is ready
+}
+
+// ── SEARCH ──────────────────────────────────────────────
+let searchTimeout;
+function handleSearch(val) {
+    clearTimeout(searchTimeout);
+    if (!val.trim()) {
+        document.getElementById('searchResults').classList.remove('open');
+        return;
+    }
+    searchTimeout = setTimeout(() => doSearch(val), 300);
+}
+
+function openSearch() {
+    const val = document.getElementById('searchInput').value;
+    if (val.trim()) doSearch(val);
+}
+
+async function doSearch(q) {
+    const box = document.getElementById('searchResults');
+    try {
+        const res = await axios.get(`/public/search?q=${encodeURIComponent(q)}`);
+        const { movies, theaters } = res.data;
+        let html = '';
+
+        if (movies && movies.length) {
+            html += `<div class="search-section-title">Movies</div>`;
+            html += movies.map(m => `
+                <div class="search-item" onclick="openShows(${m.id},'${m.title.replace(/'/g,"\\'")}');document.getElementById('searchInput').value='';document.getElementById('searchResults').classList.remove('open')">
+                    <div class="search-item-icon">🎬</div>
+                    <div>
+                        <div style="font-weight:600;font-size:0.88rem">${m.title}</div>
+                        <div style="font-size:0.75rem;color:var(--muted)">${m.durationMinutes} min</div>
+                    </div>
+                </div>`).join('');
+        }
+
+        if (theaters && theaters.length) {
+            html += `<div class="search-section-title">Theatres</div>`;
+            html += theaters.map(t => `
+                <div class="search-item" onclick="filterByTheater(${t.id},'${t.name.replace(/'/g,"\\'")}');document.getElementById('searchInput').value='';document.getElementById('searchResults').classList.remove('open')">
+                    <div class="search-item-icon">🏛️</div>
+                    <div>
+                        <div style="font-weight:600;font-size:0.88rem">${t.name}</div>
+                        <div style="font-size:0.75rem;color:var(--muted)">📍 ${t.city} · ${t.totalSeats} seats</div>
+                    </div>
+                </div>`).join('');
+        }
+
+        if (!html) html = `<div class="search-empty">No results for "${q}"</div>`;
+        box.innerHTML = html;
+        box.classList.add('open');
+    } catch(e) {
+        box.innerHTML = `<div class="search-empty">Search unavailable</div>`;
+        box.classList.add('open');
+    }
+}
+
+function filterByTheater(theaterId, theaterName) {
+    showToast(`Showing movies at ${theaterName}`);
+    const filtered = allMovies.filter(m => m.theater?.id === theaterId);
+    renderMovies(filtered.length ? filtered : allMovies);
+}
+
+// ── INIT ────────────────────────────────────────────────
+loadMovies();
+</script>
 </body>
 </html>

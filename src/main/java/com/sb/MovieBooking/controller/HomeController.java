@@ -13,11 +13,23 @@ public class HomeController {
 	private static final Logger log = LoggerFactory.getLogger(HomeController.class);
 
 	@GetMapping("/")
-	public String home(Model model) {
+	public String home( ) {
 		 log.info("HomeController.home() called");
-		model.addAttribute("appName", "Movie Booking App");
-		model.addAttribute("message", "Welcome to BookMyShow");
-		return "redirect:/index.html";
+	//	model.addAttribute("appName", "Movie Booking App");
+	//	model.addAttribute("message", "Welcome to BookMyShow");
+		 // ── Redirect root URL to index.html ──
+		    // "forward:" serves the file directly without redirect
+		    // This avoids the double request that was causing issues
+	/**	 BEFORE (IF_REQUIRED):
+			 Unauthenticated → Spring redirects to /login page
+
+			 AFTER (STATELESS) without fix:
+			 Unauthenticated → Http403ForbiddenEntryPoint → 403 error ❌
+			 No login page redirect — just blocked!
+
+			 AFTER (STATELESS) with fix:
+			 Unauthenticated → our custom entry point → redirect to /index.html ✅*/
+		 return "forward:/index.html";
 		
 	/**	@Controller + @GetMapping("/") is the standard Spring MVC pattern for view‑based controllers in Spring Boot 3/4.
 

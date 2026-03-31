@@ -83,6 +83,12 @@ public class AuthController {
     public String userHome() {
         return "user/home";
     }
+ // ── Seat selection page ───────────────────────────────────────────────
+ // GET /user/seats → serves seat selection HTML
+ @GetMapping("/user/seats")
+ public String seatsPage() {
+     return "user/seats";
+ }
 
     /* @GetMapping("/postLogin")
     public String postLogin(Authentication auth, Model model) {

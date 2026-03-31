@@ -777,6 +777,7 @@ function openAddMovie(theaterId) {
   document.getElementById('m-duration').value = '';
   document.getElementById('m-imageUrl').value = '';
   openModal('addMovieModal');
+  
 }
 
 async function addMovie() {
@@ -787,6 +788,12 @@ async function addMovie() {
   const imageUrl = document.getElementById('m-imageUrl').value.trim();
   const fileInput = document.getElementById('m-imageFile');
   const hasFile = fileInput.files && fileInput.files[0];
+  
+  
+      console.log('theaterId:', theaterId);
+      console.log('title:', title);
+      console.log('duration:', durationMinutes);
+      console.log('imageUrl:', imageUrl)
 
   if (!title || !durationMinutes) { showToast('Fill required fields', 'error'); return; }
 
@@ -807,6 +814,8 @@ async function addMovie() {
         theater: { id: parseInt(theaterId) }
       });
     }
+	
+	
     closeModal('addMovieModal');
     showToast('Movie added!');
     loadMovies(theaterId);

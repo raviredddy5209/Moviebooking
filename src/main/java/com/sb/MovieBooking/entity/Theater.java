@@ -13,7 +13,7 @@ public class Theater {
     
     private String name;      // "PVR Hyderabad"
     private String city;      // "Hyderabad"
-    private int totalSeats;   // 100
+    private Integer totalSeats;   // 100
     
     // Constructors
     public Theater() {}
@@ -30,6 +30,6 @@ public class Theater {
     public void setName(String name) { this.name = name; }
     public String getCity() { return city; }
     public void setCity(String city) { this.city = city; }
-    public int getTotalSeats() { return totalSeats; }
-    public void setTotalSeats(int totalSeats) { this.totalSeats = totalSeats; }
+    public Integer getTotalSeats() { return totalSeats; }
+    public void setTotalSeats(Integer totalSeats) { this.totalSeats = totalSeats; }
 }

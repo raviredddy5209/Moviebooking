@@ -20,9 +20,9 @@ public class Show {
 	private Theater theater;
 
 	private LocalDateTime showTime;
-	private double goldPrice;
-	private double silverPrice;
-	private double diamondPrice;
+	private Double goldPrice;
+	private Double silverPrice;
+	private Double diamondPrice;
 
 	// Constructors
 	public Show() {}
@@ -36,10 +36,10 @@ public class Show {
 	public void setTheater(Theater theater) { this.theater = theater; }
 	public LocalDateTime getShowTime() { return showTime; }
 	public void setShowTime(LocalDateTime showTime) { this.showTime = showTime; }
-	public double getGoldPrice() { return goldPrice; }
-	public void setGoldPrice(double goldPrice) { this.goldPrice = goldPrice; }
-	public double getSilverPrice() { return silverPrice; }
-	public void setSilverPrice(double silverPrice) { this.silverPrice = silverPrice; }
-	public double getDiamondPrice() { return diamondPrice; }
-	public void setDiamondPrice(double diamondPrice) { this.diamondPrice = diamondPrice; }
+	public Double getGoldPrice() { return goldPrice; }
+	public void setGoldPrice(Double goldPrice) { this.goldPrice = goldPrice; }
+	public Double getSilverPrice() { return silverPrice; }
+	public void setSilverPrice(Double silverPrice) { this.silverPrice = silverPrice; }
+	public Double getDiamondPrice() { return diamondPrice; }
+	public void setDiamondPrice(Double diamondPrice) { this.diamondPrice = diamondPrice; }
 }

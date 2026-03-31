@@ -49,6 +49,7 @@
 
         /* ── LOGIN CARD ── */
         .login-wrap {
+			
             width: 100%;
             max-width: 420px;
             padding: 1rem;
@@ -228,6 +229,62 @@
             <strong>Admin:</strong> admin@example.com &nbsp;|&nbsp;
             <strong>User:</strong> your registered email
         </div>
+		
+		<!-- ── Already logged in banner ───────────────────────────────── -->
+		<!-- Shows when a valid JWT token is found in localStorage        -->
+		<!-- Lets user continue as existing user OR login as someone else -->
+		<div id="alreadyLoggedIn" style="display:none;margin-bottom:1.5rem">
+		    <div style="
+		        background: rgba(232,255,71,0.06);
+		        border: 1px solid rgba(232,255,71,0.15);
+		        border-radius: 12px;
+		        padding: 14px 16px;
+		    ">
+		        <!-- Who is currently logged in -->
+		        <div style="font-size:0.78rem;color:var(--muted);margin-bottom:6px;
+		                    text-transform:uppercase;letter-spacing:0.5px">
+		            Currently logged in as
+		        </div>
+		        <div style="font-weight:600;font-size:0.95rem;margin-bottom:2px">
+		            <span id="loggedInEmail"></span>
+		        </div>
+		        <div style="font-size:0.78rem;color:var(--accent);margin-bottom:12px">
+		            <span id="loggedInRole"></span>
+		        </div>
+
+		        <!-- Continue button — goes to their dashboard -->
+		        <button id="continueBtn" style="
+		            width:100%;
+		            padding: 10px;
+		            background: var(--accent);
+		            color: #000;
+		            border: none;
+		            border-radius: 8px;
+		            font-weight: 700;
+		            font-size: 0.88rem;
+		            cursor: pointer;
+		            font-family: 'Syne', sans-serif;
+		            margin-bottom: 8px;
+		        ">
+		            Continue as this user →
+		        </button>
+
+		        <!-- Switch account — clears token and shows login form -->
+		        <button onclick="switchAccount()" style="
+		            width:100%;
+		            padding: 10px;
+		            background: transparent;
+		            color: var(--muted);
+		            border: 1px solid var(--border);
+		            border-radius: 8px;
+		            font-size: 0.85rem;
+		            cursor: pointer;
+		            font-family: 'DM Sans', sans-serif;
+		        ">
+		            Sign in as someone else
+		        </button>
+		    </div>
+		</div>
 
         <div class="form-group">
             <label class="form-label">Email</label>
@@ -254,24 +311,65 @@
     </div>
 </div>
 
-<script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+<!-- axios loaded from local file — no CDN dependency needed -->
+<!-- Download axios.min.js and put in static/js/axios.min.js -->
+<script src="/js/axios.min.js"></script>
 <script>
     let token;
 
-    // Auto-login if token exists
-    token = localStorage.getItem('token');
-    if (token) {
-        try {
-            axios.defaults.headers.common['Authorization'] = token;
-            const payload = JSON.parse(atob(token.split('.')[1]));
-            const isAdmin = payload.roles.some(r => r.authority === 'ROLE_ADMIN');
-            if (isAdmin) window.location.href = '/admin/dashboard';
-            else window.location.href = '/user/home';
-        } catch(e) {
-            localStorage.removeItem('token');
-        }
-    }
+    // ── Auto-login if token exists and is not expired ─────────────────
+    // Checks localStorage for existing JWT token
+    // If found and valid → skip login page → go straight to dashboard
+    // If expired or missing → show login form
+	// ── Check if token exists ─────────────────────────────────────────
+	token = localStorage.getItem('token');
+	if (token) {
+	    try {
+	        const payload = JSON.parse(atob(token.split('.')[1]));
 
+	        // ── Check if token is expired ─────────────────────────────
+	        const isExpired = payload.exp < Date.now() / 1000;
+
+	        if (isExpired) {
+	            // ── Expired — clear and show login form ───────────────
+	            localStorage.removeItem('token');
+
+	        } else {
+	            // ── Valid token found — show "Continue or Switch" UI ──
+	            // Don't silently redirect — show who is logged in
+	            const isAdmin = payload.roles.some(r => r.authority === 'ROLE_ADMIN');
+	            const email = payload.sub;
+	            const role = isAdmin ? 'Admin' : 'User';
+	            const redirectUrl = isAdmin ? '/admin/dashboard' : '/user/home';
+
+	            // ── Show the already-logged-in banner ─────────────────
+	            document.getElementById('alreadyLoggedIn').style.display = 'block';
+	            document.getElementById('loggedInEmail').textContent = email;
+	            document.getElementById('loggedInRole').textContent = role;
+	            document.getElementById('continueBtn').onclick = function() {
+	                window.location.href = redirectUrl;
+	            };
+	        }
+
+	    } catch(e) {
+	        localStorage.removeItem('token');
+	    }
+	}
+
+	// ── Switch account — clears current token and shows login form ────
+	// Called when user clicks "Sign in as someone else"
+	// Removes JWT from localStorage so login form appears normally
+	function switchAccount() {
+	    localStorage.removeItem('token');
+	    delete axios.defaults.headers.common['Authorization'];
+
+	    // ── Hide the banner, show the login form ──────────────────────
+	    document.getElementById('alreadyLoggedIn').style.display = 'none';
+	}
+	
+	
+	 
+	
     function login() {
         const email = document.getElementById('email').value.trim();
         const pass  = document.getElementById('pass').value;
@@ -284,7 +382,7 @@
             return;
         }
 
-        // Loading state
+        // ── Loading state — disable button while waiting ──────────────
         btn.textContent = 'Signing in...';
         btn.classList.add('loading');
         err.classList.remove('show');
@@ -295,23 +393,25 @@
                 localStorage.setItem('token', token);
                 axios.defaults.headers.common['Authorization'] = token;
 
-                // Decode JWT to check role
+                // ── Decode JWT to check role ──────────────────────────
                 const payload = JSON.parse(atob(token.split('.')[1]));
                 const isAdmin = payload.roles.some(r => r.authority === 'ROLE_ADMIN');
 
-                // Redirect based on role
+                // ── Redirect based on role ────────────────────────────
                 if (isAdmin) {
                     window.location.href = '/admin/dashboard';
                 } else {
                     window.location.href = '/user/home';
                 }
             })
-            .catch(err => {
-                document.getElementById('errorMsg').textContent = 'Invalid email or password.';
-                document.getElementById('errorMsg').classList.add('show');
-                btn.textContent = 'Sign In';
-                btn.classList.remove('loading');
-            });
+			// ── catch renamed to 'error' to avoid conflict ────────────────────
+			// outer variable is also named 'err' — using same name causes conflict
+			.catch(function(error) {
+			    document.getElementById('errorMsg').textContent = 'Invalid email or password.';
+			    document.getElementById('errorMsg').classList.add('show');
+			    btn.textContent = 'Sign In';
+			    btn.classList.remove('loading');
+			});
     }
 </script>
 </body>

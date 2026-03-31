@@ -560,6 +560,31 @@ nav {
 .toast.show { transform: translateY(0); opacity: 1; }
 .toast.success { background: #16a34a; }
 .toast.error { background: var(--primary); }
+
+/* ── SHOW CHIPS ROW ── */
+.show-chips-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-bottom: 8px;
+}
+.show-chip {
+    padding: 4px 10px;
+    border: 1.5px solid var(--border);
+    border-radius: 20px;
+    background: var(--pink-soft);
+    color: var(--primary);
+    font-size: 0.72rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+}
+.show-chip:hover {
+    background: var(--primary);
+    color: white;
+    border-color: var(--primary);
+}
 </style>
 </head>
 <body>
@@ -635,13 +660,7 @@ nav {
 
   <!-- Skeleton loader -->
   <div class="skeleton-grid" id="skeletonGrid">
-    ${Array(8).fill(`
-      <div class="skeleton-card">
-        <div class="skeleton-img"></div>
-        <div class="skeleton-text"></div>
-        <div class="skeleton-text short"></div>
-      </div>
-    `).join('')}
+   
   </div>
 
   <!-- Movies grid -->
@@ -688,6 +707,16 @@ nav {
 
 <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
 <script>
+	// Inside <script> tag — JS works here ✅
+	document.getElementById('skeletonGrid').innerHTML =
+	    Array(6).fill(`
+	        <div class="skeleton-card">
+	            <div class="skeleton-img"></div>
+	            <div class="skeleton-text"></div>
+	            <div class="skeleton-text short"></div>
+	        </div>
+	    `).join('');
+	
 // ── AUTH CHECK ──────────────────────────────────────────
 const token = localStorage.getItem('token');
 if (!token) window.location.href = '/index.html';
@@ -861,32 +890,94 @@ function renderStarDisplay(rating) {
 }
 
 // ── RENDER MOVIES ────────────────────────────────────────
-function renderMovies(movies) {
+// make it async because we call axios inside
+async function renderMovies(movies) {
     const grid = document.getElementById('moviesGrid');
+
     if (!movies.length) {
-        grid.innerHTML = '<div class="empty-state"><div class="empty-icon">🎬</div><div>No movies found</div></div>';
+        grid.innerHTML =
+            '<div class="empty-state"><div class="empty-icon">🎬</div><div>No movies found</div></div>';
         return;
     }
+
+    // fetch shows for all movies in parallel
+    const showsMap = {};
+    await Promise.all(
+        movies.map(async (m) => {
+            try {
+                const res = await axios.get(`/public/movies/${m.id}/shows`);
+                showsMap[m.id] = res.data;
+            } catch (e) {
+                showsMap[m.id] = [];
+            }
+        })
+    );
+
     grid.innerHTML = movies.map((m, i) => {
         const img = m.imageUrl || m.imagePath;
         const rating = getRating(m.id);
+        const safeTitle = m.title.replace(/'/g, "\\'");// Escape single quotes in title
+		// Prevents JS crash if title has apostrophe e.g. 'Don't Look Up'
+		// Get shows for this movie from the map we built above
+        const shows = showsMap[m.id] || [];
+
+        // shows.map INSIDE the template, using m from this scope
+		
+		//		— Build show time chips
+		// If shows exist, create clickable time chips
+		// Each chip calls selectShow() when clicked
+        const timeChips = shows.length
+            ? shows.map(s => {
+                const dt = new Date(s.showTime);
+                const time = dt.toLocaleTimeString('en-IN', {
+                    hour: '2-digit',
+                    minute: '2-digit'
+                });
+                const date = dt.toLocaleDateString('en-IN', {
+                    day: 'numeric',
+                    month: 'short'
+                });
+                return `<span class="show-chip"
+                    onclick="event.stopPropagation();selectShow(
+                        ${s.id},
+                        '${safeTitle}',
+                        '${(s.theater?.name || '').replace(/'/g,"\\'")}',
+                        '${s.showTime}',
+                        ${m.id}
+                    )">
+                    🕐 ${date} ${time}
+                </span>`;
+            }).join('')
+            : `<span style="font-size:0.75rem;color:var(--muted);font-style:italic">
+                 No shows scheduled
+               </span>`;
+
         return `
-        <div class="movie-card" style="animation-delay:${i * 0.05}s" onclick="openShows(${m.id}, '${m.title.replace(/'/g,"\\'")}')">
+        <div class="movie-card" style="animation-delay:${i * 0.05}s"
+             onclick="openShows(${m.id}, '${safeTitle}')">
             ${img
-                ? `<img class="movie-poster" src="${img}" alt="${m.title}" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">`
+                ? `<img class="movie-poster" src="${img}" alt="${m.title}"
+                     onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">`
                 : ''
             }
             <div class="movie-poster-placeholder" ${img ? 'style="display:none"' : ''}>🎬</div>
             <div class="movie-info">
                 <div class="movie-title" title="${m.title}">${m.title}</div>
-                <div class="movie-meta">${m.durationMinutes} min${m.theater ? ' · ' + m.theater.city : ''}</div>
+                <div class="movie-meta">
+                    ${m.durationMinutes} min${m.theater ? ' · ' + m.theater.city : ''}
+                </div>
                 <div class="movie-stars">${renderStarDisplay(rating)}</div>
-                <button class="btn-book" onclick="event.stopPropagation();openShows(${m.id},'${m.title.replace(/'/g,"\\'")}')">Book Now</button>
+                <div class="show-chips-row">
+                    ${timeChips}
+                </div>
+                <button class="btn-book"
+                    onclick="event.stopPropagation();openShows(${m.id},'${safeTitle}')">
+                    Book Now
+                </button>
             </div>
         </div>`;
     }).join('');
 }
-
 // ── SHOWS PANEL ──────────────────────────────────────────
 async function openShows(movieId, movieTitle) {
     const panel = document.getElementById('showsPanel');
@@ -920,7 +1011,9 @@ async function openShows(movieId, movieTitle) {
                 const dt = new Date(s.showTime);
                 const time = dt.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' });
                 const date = dt.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' });
-                return `<button class="show-time-btn" onclick="selectShow(${s.id}, '${time}', '${t.name || ''}', ${movieId})">${date} ${time}</button>`;
+               // return `<button class="show-time-btn" onclick="selectShow(${s.id}, '${time}', '${t.name || ''}', ${movieId})">${date} ${time}</button>`;
+				return `<button class="show-time-btn" onclick="selectShow(${s.id}, '${movieTitle}', '${t.name || ''}', '${s.showTime}', ${movieId})">${date} ${time}</button>`;
+				
             }).join('');
 
             return `
@@ -944,12 +1037,41 @@ async function openShows(movieId, movieTitle) {
 function closeShowsPanel() {
     document.getElementById('showsPanel').classList.remove('open');
 }
-
-function selectShow(showId, time, theater, movieId) {
-    // Will navigate to seat selection page
-    localStorage.setItem('selectedShow', JSON.stringify({ showId, time, theater, movieId }));
+ //── Called when user clicks a show time chip ──────────────────────────
+// Saves show details to localStorage so seats.html can read them
+// Then redirects to seat selection page
+function selectShow(showId, movieTitle, theater, showTime, movieId) {
+	 // ── Format date and time ──────────────────────────────────────────
+	 // Parse the ISO date string into a Date object
+	 // showTime from server: '2024-03-21T10:00:00'
+	    const dt = new Date(showTime);
+		// Format for display: '21 Mar 2024'
+	    const date = dt.toLocaleDateString('en-IN', {
+	        day: 'numeric', month: 'short', year: 'numeric'
+	    });
+		// Format for display: '10:00 AM'
+	    const time = dt.toLocaleTimeString('en-IN', {
+	        hour: '2-digit', minute: '2-digit'
+	    });
+	
+	
+		// ── Save to localStorage ──────────────────────────────────────────
+		    // seats.html reads this to show show info and load correct seats
+		    localStorage.setItem('selectedShow', JSON.stringify({
+		        showId,
+		        movieId,
+		        movieTitle,
+		        theater,
+		        date,
+		        time
+		    }));
+			// Will navigate to seat selection page//
+	
+	
+   
+  //  localStorage.setItem('selectedShow', JSON.stringify({ showId, time, theater, movieId }));
     showToast(`Show selected: ${theater} at ${time} — Seat selection coming next!`);
-    // window.location.href = `/user/seats?showId=${showId}`;  ← uncomment when seats page is ready
+     window.location.href = `/user/seats?showId=${showId}`; // ← uncomment when seats page is ready
 }
 
 // ── SEARCH ──────────────────────────────────────────────

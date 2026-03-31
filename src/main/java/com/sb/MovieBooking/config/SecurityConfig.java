@@ -103,7 +103,8 @@ public class SecurityConfig {
                 })
             )
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/", "/index.html","/favicon.ico","/css/**", "/js/**", "/register", "/login","/postLogin").permitAll()
+                .requestMatchers("/", "/index.html","/favicon.ico","/css/**", "/js/**", "/register", "/uploads/**", "/public/**",
+                	    "/user/home", "/user/seats","/login","/postLogin").permitAll()
                 .requestMatchers("/api/auth/**").permitAll()//jwt login endpoint public
              //// ── /public/** permitAll ───────────────────────────────────────────────
              // Any URL starting with /public is accessible without login

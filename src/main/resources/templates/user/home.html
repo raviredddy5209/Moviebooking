@@ -340,6 +340,84 @@ nav {
   transition: transform 0.2s, box-shadow 0.2s;
   animation: fadeCard 0.4s ease both;
 }
+/* ── BOOKINGS GRID ── */
+.bookings-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 1.5rem;
+}
+
+/* Booking card */
+.booking-card {
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: var(--card-shadow);
+  transition: transform 0.2s, box-shadow 0.2s;
+  animation: fadeCard 0.4s ease both;
+}
+
+.booking-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 32px var(--shadow);
+}
+
+/* Poster (same feel as movies) */
+.booking-poster {
+  width: 100%;
+  height: 160px;
+  object-fit: cover;
+  background: var(--pink-soft);
+}
+
+.booking-poster-placeholder {
+  height: 160px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2rem;
+  background: linear-gradient(135deg, var(--pink-soft), var(--pink-mid));
+}
+
+/* Content */
+.booking-info {
+  padding: 12px 14px;
+}
+
+.booking-title {
+  font-weight: 700;
+  font-size: 0.95rem;
+  margin-bottom: 4px;
+}
+
+.booking-meta {
+  font-size: 0.8rem;
+  color: var(--muted);
+  margin-bottom: 6px;
+}
+
+.booking-seats {
+  font-size: 0.78rem;
+  margin-bottom: 8px;
+}
+
+.booking-amount {
+  font-weight: 700;
+  color: var(--primary);
+}
+
+/* Status badge */
+.booking-badge {
+  display: inline-block;
+  font-size: 0.7rem;
+  padding: 3px 8px;
+  border-radius: 20px;
+  background: #ecfdf5;
+  color: #16a34a;
+  margin-bottom: 6px;
+  font-weight: 600;
+}
 @keyframes fadeCard { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
 .movie-card:hover { transform: translateY(-4px); box-shadow: 0 12px 32px var(--shadow); }
 .movie-poster {
@@ -391,7 +469,6 @@ nav {
   margin-top: 8px;
 }
 .btn-book:hover { background: var(--primary-dark); }
-
 /* ── SHOWS PANEL ── */
 .shows-panel {
   display: none;
@@ -637,7 +714,6 @@ nav {
 
 <!-- ── MAIN ── -->
 <div class="main">
-
   <!-- Shows panel (appears when movie clicked) -->
   <div class="shows-panel" id="showsPanel">
     <div class="shows-panel-header">
@@ -666,6 +742,7 @@ nav {
   <!-- Movies grid -->
   <div class="movies-grid" id="moviesGrid" style="display:none"></div>
 
+  <div id="bookingsContainer" style="display:none"></div>
 </div>
 
 <!-- ── LOCATION MODAL ── -->
@@ -772,12 +849,107 @@ function logout() {
     window.location.href = '/index.html';
 }
 
-function showBookings() {
+async function showBookings() {
     closeModal('profileDropdown');
     document.getElementById('profileDropdown').classList.remove('open');
-    showToast('Bookings feature coming soon!');
-}
 
+    try {
+        const res = await axios.get('/user/bookings');
+        const bookings = res.data;
+
+        const container = document.getElementById('bookingsContainer');
+        const moviesGrid = document.getElementById('moviesGrid');
+
+        // Hide movies grid
+        moviesGrid.style.display = 'none';
+
+        // Show bookings container
+        container.style.display = 'block';
+
+        if (!bookings.length) {
+            container.innerHTML = `
+                <div class="empty-state">
+                    <div class="empty-icon">🎟️</div>
+                    <div>No bookings found</div>
+                </div>
+            `;
+            return;
+        }
+		let html = bookings.map((b, i) => {
+		    const dt = new Date(b.showTime);
+
+		    const date = dt.toLocaleDateString('en-IN', {
+		        day: 'numeric',
+		        month: 'short',
+		        year: 'numeric'
+		    });
+
+		    const time = dt.toLocaleTimeString('en-IN', {
+		        hour: '2-digit',
+		        minute: '2-digit'
+		    });
+
+		    return `
+		    <div class="booking-card" style="animation-delay:${i * 0.05}s">
+		        
+		        ${b.imageUrl
+		            ? `<img src="${b.imageUrl}" class="booking-poster">`
+		            : `<div class="booking-poster-placeholder">🎬</div>`
+		        }
+
+		        <div class="booking-info">
+		            <div class="booking-badge">CONFIRMED</div>
+
+		            <div class="booking-title">${b.movieTitle}</div>
+
+		            <div class="booking-meta">
+		                📍 ${b.theaterName}
+		            </div>
+
+		            <div class="booking-meta">
+		                🕐 ${date} · ${time}
+		            </div>
+
+		            <div class="booking-seats">
+		                🎟 Seats: ${b.seats.join(', ')}
+		            </div>
+
+		            <div class="booking-amount">
+		                ₹${b.totalAmount}
+		            </div>
+		        </div>
+		    </div>`;
+		}).join('');
+
+		container.innerHTML = `
+		    <h2 style="margin-bottom:1rem">🎟️ My Bookings</h2>
+
+		    <div class="bookings-grid">
+		        ${html}
+		    </div>
+
+		    <button onclick="backToMovies()" style="
+		        margin-top:1.5rem;
+		        padding:10px 16px;
+		        border:none;
+		        background:#e8184a;
+		        color:white;
+		        border-radius:8px;
+		        cursor:pointer;
+		    ">
+		        ← Back to Movies
+		    </button>
+		`;
+
+    } catch (e) {
+        console.error(e);
+        showToast('Failed to load bookings', 'error');
+    }
+}
+function backToMovies() {
+    document.getElementById('bookingsContainer').style.display = 'none';
+    document.getElementById('moviesGrid').style.display = 'grid';
+}
 function openChangePassword() {
     document.getElementById('profileDropdown').classList.remove('open');
     openModal('pwModal');

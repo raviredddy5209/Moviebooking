@@ -4,865 +4,572 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Admin Dashboard</title>
-<script src="https://unpkg.com/axios/dist/axios.min.js"></script>
-<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
 <style>
-  :root {
-    --bg: #0a0a0f;
-    --surface: #13131a;
-    --surface2: #1c1c28;
-    --accent: #e8ff47;
-    --accent2: #ff6b35;
-    --text: #f0f0f0;
-    --muted: #888;
-    --border: rgba(255,255,255,0.08);
-    --gold: #FFD700;
-    --silver: #C0C0C0;
-    --diamond: #b9f2ff;
-  }
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-serif; min-height: 100vh; }
-
-  /* NAV */
-  nav {
-    background: var(--surface);
-    border-bottom: 1px solid var(--border);
-    padding: 0 2rem;
-    height: 60px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    position: sticky;
-    top: 0;
-    z-index: 100;
-  }
-  .nav-brand { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 1.2rem; letter-spacing: -0.5px; }
-  .nav-brand span { color: var(--accent); }
-  .nav-right { display: flex; align-items: center; gap: 1rem; }
-  .badge-admin {
-    background: var(--accent);
-    color: #000;
-    font-size: 0.65rem;
-    font-weight: 700;
-    padding: 2px 8px;
-    border-radius: 20px;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-  }
-  .btn-logout {
-    background: transparent;
-    border: 1px solid var(--border);
-    color: var(--muted);
-    padding: 6px 16px;
-    border-radius: 6px;
-    font-size: 0.85rem;
-    cursor: pointer;
-    transition: all 0.2s;
-    font-family: 'DM Sans', sans-serif;
-  }
-  .btn-logout:hover { border-color: #ff4444; color: #ff4444; }
-
-  /* LAYOUT */
-  .main { max-width: 1200px; margin: 0 auto; padding: 2rem; }
-  .page-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 2rem;
-  }
-  .page-title { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 1.8rem; }
-  .page-title span { color: var(--accent); }
-
-  /* BUTTONS */
-  .btn-primary-custom {
-    background: var(--accent);
-    color: #000;
-    border: none;
-    padding: 10px 20px;
-    border-radius: 8px;
-    font-weight: 600;
-    font-size: 0.9rem;
-    cursor: pointer;
-    transition: all 0.2s;
-    font-family: 'DM Sans', sans-serif;
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-  }
-  .btn-primary-custom:hover { background: #d4eb2e; transform: translateY(-1px); }
-  .btn-danger-custom {
-    background: transparent;
-    border: 1px solid rgba(255,68,68,0.3);
-    color: #ff6b6b;
-    padding: 6px 12px;
-    border-radius: 6px;
-    font-size: 0.8rem;
-    cursor: pointer;
-    transition: all 0.2s;
-    font-family: 'DM Sans', sans-serif;
-  }
-  .btn-danger-custom:hover { background: rgba(255,68,68,0.1); border-color: #ff4444; }
-  .btn-accent2 {
-    background: var(--accent2);
-    color: #fff;
-    border: none;
-    padding: 6px 14px;
-    border-radius: 6px;
-    font-size: 0.8rem;
-    font-weight: 500;
-    cursor: pointer;
-    transition: all 0.2s;
-    font-family: 'DM Sans', sans-serif;
-  }
-  .btn-accent2:hover { background: #e55a25; }
-  .btn-ghost {
-    background: transparent;
-    border: 1px solid var(--border);
-    color: var(--muted);
-    padding: 6px 14px;
-    border-radius: 6px;
-    font-size: 0.8rem;
-    cursor: pointer;
-    transition: all 0.2s;
-    font-family: 'DM Sans', sans-serif;
-  }
-  .btn-ghost:hover { border-color: var(--accent); color: var(--accent); }
-
-  /* TABLE */
-  .table-card {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    overflow: hidden;
-  }
-  table { width: 100%; border-collapse: collapse; }
-  thead tr { background: var(--surface2); }
-  thead th {
-    padding: 14px 16px;
-    text-align: left;
-    font-size: 0.75rem;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    color: var(--muted);
-    font-weight: 500;
-    border-bottom: 1px solid var(--border);
-  }
-  tbody tr {
-    border-bottom: 1px solid var(--border);
-    transition: background 0.15s;
-  }
-  tbody tr:last-child { border-bottom: none; }
-  tbody tr:hover { background: rgba(255,255,255,0.02); }
-  td { padding: 14px 16px; font-size: 0.9rem; vertical-align: middle; }
-  .td-id { color: var(--muted); font-size: 0.8rem; font-family: monospace; }
-  .city-badge {
-    background: rgba(232,255,71,0.1);
-    color: var(--accent);
-    padding: 3px 10px;
-    border-radius: 20px;
-    font-size: 0.78rem;
-    font-weight: 500;
-  }
-  .seats-badge {
-    background: rgba(255,107,53,0.1);
-    color: var(--accent2);
-    padding: 3px 10px;
-    border-radius: 20px;
-    font-size: 0.78rem;
-  }
-  .actions-cell { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
-
-  /* EMPTY STATE */
-  .empty-state {
-    text-align: center;
-    padding: 3rem;
-    color: var(--muted);
-  }
-  .empty-state .empty-icon { font-size: 2.5rem; margin-bottom: 0.5rem; opacity: 0.4; }
-
-  /* MODALS */
-  .modal-overlay {
-    display: none;
-    position: fixed;
-    inset: 0;
-    background: rgba(0,0,0,0.75);
-    z-index: 1000;
-    align-items: center;
-    justify-content: center;
-    backdrop-filter: blur(4px);
-  }
-  .modal-overlay.open { display: flex; }
-  .modal-box {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 16px;
-    padding: 2rem;
-    width: 100%;
-    max-width: 520px;
-    max-height: 90vh;
-    overflow-y: auto;
-    animation: slideUp 0.2s ease;
-  }
-  @keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
-  .modal-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 1.5rem;
-  }
-  .modal-title { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 1.2rem; }
-  .modal-close {
-    background: var(--surface2);
-    border: none;
-    color: var(--muted);
-    width: 32px;
-    height: 32px;
-    border-radius: 8px;
-    cursor: pointer;
-    font-size: 1.1rem;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: all 0.2s;
-  }
-  .modal-close:hover { background: var(--border); color: var(--text); }
-
-  /* FORMS */
-  .form-group { margin-bottom: 1rem; }
-  .form-label {
-    display: block;
-    font-size: 0.8rem;
-    color: var(--muted);
-    margin-bottom: 6px;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    font-weight: 500;
-  }
-  .form-control-custom {
-    width: 100%;
-    background: var(--surface2);
-    border: 1px solid var(--border);
-    color: var(--text);
-    padding: 10px 14px;
-    border-radius: 8px;
-    font-size: 0.9rem;
-    font-family: 'DM Sans', sans-serif;
-    transition: border-color 0.2s;
-    outline: none;
-  }
-  .form-control-custom:focus { border-color: var(--accent); }
-  .form-control-custom::placeholder { color: var(--muted); }
-  textarea.form-control-custom { resize: vertical; min-height: 80px; }
-
-  /* IMAGE TABS */
-  .img-tab-group { display: flex; gap: 8px; margin-bottom: 1rem; }
-  .img-tab {
-    flex: 1;
-    padding: 8px;
-    border-radius: 8px;
-    border: 1px solid var(--border);
-    background: var(--surface2);
-    color: var(--muted);
-    font-size: 0.82rem;
-    cursor: pointer;
-    text-align: center;
-    transition: all 0.2s;
-    font-family: 'DM Sans', sans-serif;
-  }
-  .img-tab.active { border-color: var(--accent); color: var(--accent); background: rgba(232,255,71,0.05); }
-
-  /* PRICING GRID */
-  .pricing-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
-  .pricing-item label { font-size: 0.75rem; }
-  .gold-label { color: var(--gold); }
-  .silver-label { color: var(--silver); }
-  .diamond-label { color: var(--diamond); }
-
-  /* MOVIES SECTION */
-  .movies-section {
-    background: var(--surface2);
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    padding: 1.5rem;
-    margin-top: 1rem;
-  }
-  .movies-section-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 1rem;
-  }
-  .movies-section-title { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 1rem; }
-  .movies-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 1rem; }
-  .movie-card {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    overflow: hidden;
-    transition: transform 0.2s, border-color 0.2s;
-  }
-  .movie-card:hover { transform: translateY(-2px); border-color: rgba(232,255,71,0.2); }
-  .movie-poster {
-    width: 100%;
-    height: 140px;
-    object-fit: cover;
-    display: block;
-    background: var(--surface2);
-  }
-  .movie-poster-placeholder {
-    width: 100%;
-    height: 140px;
-    background: var(--surface2);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: var(--muted);
-    font-size: 2rem;
-  }
-  .movie-info { padding: 10px 12px; }
-  .movie-title { font-weight: 600; font-size: 0.9rem; margin-bottom: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .movie-duration { font-size: 0.75rem; color: var(--muted); margin-bottom: 8px; }
-
-  /* STAR RATING */
-  .star-rating { display: flex; gap: 3px; margin-bottom: 8px; }
-  .star {
-    font-size: 1rem;
-    cursor: pointer;
-    color: #444;
-    transition: color 0.15s, transform 0.1s;
-    user-select: none;
-  }
-  .star:hover, .star.active { color: var(--gold); transform: scale(1.2); }
-  .star.hover-active { color: var(--gold); }
-  .rating-count { font-size: 0.72rem; color: var(--muted); margin-left: 4px; }
-
-  .movie-actions { display: flex; gap: 6px; margin-top: 6px; }
-
-  /* SHOWS */
-  .shows-list { margin-top: 8px; }
-  .show-chip {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    background: rgba(185,242,255,0.07);
-    border: 1px solid rgba(185,242,255,0.15);
-    color: var(--diamond);
-    padding: 3px 10px;
-    border-radius: 20px;
-    font-size: 0.72rem;
-    margin: 2px 3px 2px 0;
-  }
-
-  /* TOAST */
-  .toast {
-    position: fixed;
-    bottom: 2rem;
-    right: 2rem;
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    padding: 12px 20px;
-    font-size: 0.9rem;
-    z-index: 9999;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    transform: translateY(100px);
-    opacity: 0;
-    transition: all 0.3s;
-    max-width: 320px;
-  }
-  .toast.show { transform: translateY(0); opacity: 1; }
-  .toast.success { border-color: rgba(100,255,100,0.3); }
-  .toast.error { border-color: rgba(255,68,68,0.3); }
-  .toast-icon { font-size: 1.1rem; }
-
-  /* SECTION DIVIDER */
-  .section-divider {
-    border: none;
-    border-top: 1px solid var(--border);
-    margin: 2rem 0;
-  }
-
-  /* COLLAPSIBLE MOVIES ROW */
-  .movies-row { display: none; }
-  .movies-row.open { display: table-row; }
-  .movies-row td { padding: 0 16px 16px; }
-
-  /* LOADING */
-  .loading { color: var(--muted); font-size: 0.85rem; padding: 2rem; text-align: center; }
+:root {
+  --bg: #0a0a0f; --surface: #13131a; --surface2: #1c1c28; --surface3: #22222f;
+  --accent: #e8ff47; --accent2: #ff6b35; --text: #f0f0f0; --muted: #888;
+  --border: rgba(255,255,255,0.08); --gold: #FFD700; --silver: #C0C0C0; --diamond: #b9f2ff;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-serif; min-height: 100vh; }
+nav { background: var(--surface); border-bottom: 1px solid var(--border); padding: 0 2rem; height: 60px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; }
+.nav-brand { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 1.2rem; }
+.nav-brand span { color: var(--accent); }
+.badge-admin { background: var(--accent); color: #000; font-size: 0.65rem; font-weight: 700; padding: 2px 8px; border-radius: 20px; text-transform: uppercase; letter-spacing: 1px; }
+.btn-logout { background: transparent; border: 1px solid var(--border); color: var(--muted); padding: 6px 16px; border-radius: 6px; font-size: 0.85rem; cursor: pointer; font-family: 'DM Sans', sans-serif; transition: all 0.2s; }
+.btn-logout:hover { border-color: #ff6b6b; color: #ff6b6b; }
+.main { max-width: 1200px; margin: 0 auto; padding: 2rem; }
+.stats-row { display: grid; grid-template-columns: repeat(3,1fr); gap: 1rem; margin-bottom: 2rem; }
+.stat-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 1.2rem 1.5rem; }
+.stat-number { font-family: 'Syne', sans-serif; font-size: 2rem; font-weight: 800; color: var(--accent); }
+.stat-label { font-size: 0.82rem; color: var(--muted); margin-top: 4px; }
+.tabs { display: flex; gap: 4px; margin-bottom: 2rem; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 4px; width: fit-content; }
+.tab { padding: 8px 20px; border-radius: 8px; font-size: 0.88rem; font-weight: 500; cursor: pointer; transition: all 0.2s; color: var(--muted); border: none; background: none; font-family: 'DM Sans', sans-serif; }
+.tab.active { background: var(--accent); color: #000; font-weight: 700; }
+.tab-content { display: none; }
+.tab-content.active { display: block; }
+.section-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.5rem; }
+.section-title { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 1.4rem; }
+.section-title span { color: var(--accent); }
+.btn-primary { background: var(--accent); color: #000; border: none; padding: 10px 20px; border-radius: 8px; font-weight: 600; font-size: 0.9rem; cursor: pointer; transition: all 0.2s; font-family: 'DM Sans', sans-serif; display: inline-flex; align-items: center; gap: 6px; }
+.btn-primary:hover { background: #d4eb2e; transform: translateY(-1px); }
+.btn-danger { background: transparent; border: 1px solid rgba(255,68,68,0.3); color: #ff6b6b; padding: 6px 12px; border-radius: 6px; font-size: 0.8rem; cursor: pointer; transition: all 0.2s; font-family: 'DM Sans', sans-serif; }
+.btn-danger:hover { background: rgba(255,68,68,0.1); }
+.card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
+table { width: 100%; border-collapse: collapse; }
+thead tr { background: var(--surface2); }
+thead th { padding: 12px 16px; text-align: left; font-size: 0.73rem; text-transform: uppercase; letter-spacing: 1px; color: var(--muted); font-weight: 500; border-bottom: 1px solid var(--border); }
+tbody tr { border-bottom: 1px solid var(--border); transition: background 0.15s; }
+tbody tr:last-child { border-bottom: none; }
+tbody tr:hover { background: rgba(255,255,255,0.02); }
+td { padding: 14px 16px; font-size: 0.9rem; vertical-align: middle; }
+.td-id { color: var(--muted); font-size: 0.78rem; font-family: monospace; }
+.city-badge { background: rgba(232,255,71,0.1); color: var(--accent); padding: 3px 10px; border-radius: 20px; font-size: 0.78rem; }
+.seats-badge { background: rgba(255,107,53,0.1); color: var(--accent2); padding: 3px 10px; border-radius: 20px; font-size: 0.78rem; }
+.actions-cell { display: flex; gap: 8px; align-items: center; }
+.movies-grid { display: grid; grid-template-columns: repeat(auto-fill,minmax(190px,1fr)); gap: 1rem; }
+.movie-card { background: var(--surface2); border: 1px solid var(--border); border-radius: 10px; overflow: hidden; transition: border-color 0.2s; }
+.movie-card:hover { border-color: rgba(232,255,71,0.2); }
+.movie-poster { width: 100%; height: 130px; object-fit: cover; display: block; background: var(--surface3); }
+.movie-poster-ph { width: 100%; height: 130px; background: var(--surface3); display: flex; align-items: center; justify-content: center; font-size: 2rem; color: var(--muted); }
+.movie-info { padding: 10px 12px; }
+.movie-title-card { font-weight: 600; font-size: 0.88rem; margin-bottom: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.movie-dur { font-size: 0.73rem; color: var(--muted); margin-bottom: 8px; }
+.theater-panel { background: var(--surface2); border: 1px solid var(--border); border-radius: 12px; margin-bottom: 1rem; }
+.theater-panel-hdr { padding: 1rem 1.2rem; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
+.theater-panel-name { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 0.95rem; }
+.shows-section { padding: 1rem 1.2rem; }
+.show-row { display: flex; align-items: center; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid var(--border); }
+.show-row:last-child { border-bottom: none; }
+.show-movie-name { font-weight: 600; font-size: 0.88rem; margin-bottom: 3px; }
+.show-time-info { font-size: 0.78rem; color: var(--muted); }
+.show-prices { display: flex; gap: 8px; }
+.price-chip { font-size: 0.72rem; padding: 2px 8px; border-radius: 12px; font-weight: 600; }
+.price-chip.gold { background: rgba(255,215,0,0.1); color: var(--gold); border: 1px solid rgba(255,215,0,0.2); }
+.price-chip.silver { background: rgba(192,192,192,0.1); color: var(--silver); border: 1px solid rgba(192,192,192,0.2); }
+.price-chip.diamond { background: rgba(185,242,255,0.1); color: var(--diamond); border: 1px solid rgba(185,242,255,0.2); }
+.modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.75); z-index: 1000; align-items: center; justify-content: center; backdrop-filter: blur(4px); }
+.modal-overlay.open { display: flex; }
+.modal-box { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 2rem; width: 100%; max-width: 520px; max-height: 90vh; overflow-y: auto; animation: slideUp 0.2s ease; }
+@keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+.modal-hdr { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.5rem; }
+.modal-title { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 1.2rem; }
+.modal-close { background: var(--surface2); border: none; color: var(--muted); width: 32px; height: 32px; border-radius: 8px; cursor: pointer; font-size: 1.1rem; display: flex; align-items: center; justify-content: center; }
+.form-group { margin-bottom: 1rem; }
+.form-label { display: block; font-size: 0.78rem; color: var(--muted); margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 500; }
+.form-control { width: 100%; background: var(--surface2); border: 1px solid var(--border); color: var(--text); padding: 10px 14px; border-radius: 8px; font-size: 0.9rem; font-family: 'DM Sans', sans-serif; transition: border-color 0.2s; outline: none; }
+.form-control:focus { border-color: var(--accent); }
+.form-control::placeholder { color: var(--muted); }
+textarea.form-control { resize: vertical; min-height: 80px; }
+select.form-control option { background: var(--surface2); color: var(--text); }
+.img-tabs { display: flex; gap: 8px; margin-bottom: 1rem; }
+.img-tab { flex: 1; padding: 8px; border-radius: 8px; border: 1px solid var(--border); background: var(--surface2); color: var(--muted); font-size: 0.82rem; cursor: pointer; text-align: center; transition: all 0.2s; font-family: 'DM Sans', sans-serif; }
+.img-tab.active { border-color: var(--accent); color: var(--accent); background: rgba(232,255,71,0.05); }
+.pricing-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
+.gold-label { color: var(--gold); }
+.silver-label { color: var(--silver); }
+.diamond-label { color: var(--diamond); }
+.toast { position: fixed; bottom: 2rem; right: 2rem; background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 12px 20px; font-size: 0.9rem; z-index: 9999; display: flex; align-items: center; gap: 10px; transform: translateY(100px); opacity: 0; transition: all 0.3s; max-width: 320px; }
+.toast.show { transform: translateY(0); opacity: 1; }
+.toast.success { border-color: rgba(100,255,100,0.3); }
+.toast.error { border-color: rgba(255,68,68,0.3); }
+.loading { color: var(--muted); font-size: 0.85rem; padding: 2rem; text-align: center; }
+.empty-state { text-align: center; padding: 3rem; color: var(--muted); }
+.empty-icon { font-size: 2.5rem; margin-bottom: 0.5rem; opacity: 0.4; }
 </style>
 </head>
 <body>
 
 <nav>
   <div class="nav-brand">Movie<span>Admin</span></div>
-  <div class="nav-right">
+  <div style="display:flex;align-items:center;gap:1rem">
     <span class="badge-admin">Admin</span>
     <button class="btn-logout" onclick="logout()">Logout</button>
   </div>
 </nav>
 
 <div class="main">
-  <div class="page-header">
-    <div class="page-title">Theaters <span>&</span> Movies</div>
-    <button class="btn-primary-custom" onclick="openModal('addTheaterModal')">
-      + Add Theater
-    </button>
+
+  <div class="stats-row">
+    <div class="stat-card"><div class="stat-number" id="statMovies">—</div><div class="stat-label">Total Movies</div></div>
+    <div class="stat-card"><div class="stat-number" id="statTheaters">—</div><div class="stat-label">Theaters</div></div>
+    <div class="stat-card"><div class="stat-number" id="statShows">—</div><div class="stat-label">Active Shows</div></div>
   </div>
 
-  <div class="table-card">
-    <table>
-      <thead>
-        <tr>
-          <th>ID</th>
-          <th>Theater Name</th>
-          <th>City</th>
-          <th>Seats</th>
-          <th>Actions</th>
-        </tr>
-      </thead>
-      <tbody id="theatersBody">
-        <tr><td colspan="5" class="loading">Loading theaters...</td></tr>
-      </tbody>
-    </table>
+  <div class="tabs">
+    <button class="tab active" onclick="switchTab('movies',this)">🎬 Movies</button>
+    <button class="tab" onclick="switchTab('theaters',this)">🏛️ Theaters</button>
+    <button class="tab" onclick="switchTab('shows',this)">🕐 Shows</button>
   </div>
+
+  <!-- MOVIES TAB -->
+  <div class="tab-content active" id="tab-movies">
+    <div class="section-header">
+      <div class="section-title">All <span>Movies</span></div>
+      <button class="btn-primary" onclick="openModal('addMovieModal')">+ Add Movie</button>
+    </div>
+    <div class="movies-grid" id="moviesGrid"><div class="loading">Loading...</div></div>
+  </div>
+
+  <!-- THEATERS TAB -->
+  <div class="tab-content" id="tab-theaters">
+    <div class="section-header">
+      <div class="section-title">All <span>Theaters</span></div>
+      <button class="btn-primary" onclick="openModal('addTheaterModal')">+ Add Theater</button>
+    </div>
+    <div class="card">
+      <table>
+        <thead><tr><th>ID</th><th>Name</th><th>City</th><th>Seats</th><th>Actions</th></tr></thead>
+        <tbody id="theatersBody"><tr><td colspan="5" class="loading">Loading...</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- SHOWS TAB -->
+  <div class="tab-content" id="tab-shows">
+    <div class="section-header">
+      <div class="section-title">Show <span>Timings</span></div>
+      <button class="btn-primary" onclick="openAddShowModal()">+ Add Show</button>
+    </div>
+    <div id="showsByTheater"><div class="loading">Loading...</div></div>
+  </div>
+
 </div>
 
-<!-- ── ADD THEATER MODAL ──────────────────────────────── -->
-<div class="modal-overlay" id="addTheaterModal">
-  <div class="modal-box">
-    <div class="modal-header">
-      <div class="modal-title">Add New Theater</div>
-      <button class="modal-close" onclick="closeModal('addTheaterModal')">✕</button>
-    </div>
-    <div class="form-group">
-      <label class="form-label">Theater Name</label>
-      <input class="form-control-custom" id="t-name" placeholder="e.g. PVR Hyderabad">
-    </div>
-    <div class="form-group">
-      <label class="form-label">City</label>
-      <input class="form-control-custom" id="t-city" placeholder="e.g. Hyderabad">
-    </div>
-    <div class="form-group">
-      <label class="form-label">Total Seats</label>
-      <input class="form-control-custom" id="t-seats" type="number" placeholder="e.g. 200">
-    </div>
-    <button class="btn-primary-custom" style="width:100%;justify-content:center" onclick="addTheater()">
-      Add Theater
-    </button>
-  </div>
-</div>
-
-<!-- ── ADD MOVIE MODAL ──────────────────────────────── -->
+<!-- ADD MOVIE MODAL -->
 <div class="modal-overlay" id="addMovieModal">
   <div class="modal-box">
-    <div class="modal-header">
+    <div class="modal-hdr">
       <div class="modal-title">Add Movie</div>
       <button class="modal-close" onclick="closeModal('addMovieModal')">✕</button>
     </div>
-    <input type="hidden" id="m-theaterId">
+    <!-- No theater selection — movie is now global -->
+    <div style="background:rgba(232,255,71,0.05);border:1px solid rgba(232,255,71,0.1);border-radius:8px;padding:10px 14px;margin-bottom:1rem;font-size:0.8rem;color:var(--muted)">
+      Movies are <strong style="color:var(--accent)">global</strong> — theaters are assigned when adding show timings
+    </div>
     <div class="form-group">
       <label class="form-label">Movie Title</label>
-      <input class="form-control-custom" id="m-title" placeholder="e.g. Interstellar">
+      <input class="form-control" id="m-title" placeholder="e.g. Interstellar">
     </div>
     <div class="form-group">
       <label class="form-label">Description</label>
-      <textarea class="form-control-custom" id="m-desc" placeholder="Short description..."></textarea>
+      <textarea class="form-control" id="m-desc" placeholder="Short description..."></textarea>
     </div>
     <div class="form-group">
       <label class="form-label">Duration (minutes)</label>
-      <input class="form-control-custom" id="m-duration" type="number" placeholder="e.g. 169">
+      <input class="form-control" id="m-duration" type="number" placeholder="e.g. 169">
     </div>
     <div class="form-group">
       <label class="form-label">Movie Image</label>
-      <div class="img-tab-group">
-        <button class="img-tab active" id="tab-url" onclick="switchImgTab('url')">Paste URL</button>
-        <button class="img-tab" id="tab-file" onclick="switchImgTab('file')">Upload File</button>
+      <div class="img-tabs">
+        <button class="img-tab active" id="itab-url" onclick="switchImgTab('url')">Paste URL</button>
+        <button class="img-tab" id="itab-file" onclick="switchImgTab('file')">Upload File</button>
       </div>
-      <div id="img-url-section">
-        <input class="form-control-custom" id="m-imageUrl" placeholder="https://...poster.jpg">
-      </div>
-      <div id="img-file-section" style="display:none">
-        <input class="form-control-custom" id="m-imageFile" type="file" accept="image/*" style="padding:6px">
-      </div>
+      <div id="img-url-sec"><input class="form-control" id="m-imageUrl" placeholder="https://...poster.jpg"></div>
+      <div id="img-file-sec" style="display:none"><input class="form-control" id="m-imageFile" type="file" accept="image/*" style="padding:6px"></div>
     </div>
-    <button class="btn-primary-custom" style="width:100%;justify-content:center" onclick="addMovie()">
-      Add Movie
-    </button>
+    <button class="btn-primary" style="width:100%;justify-content:center" onclick="addMovie()">Add Movie</button>
   </div>
 </div>
 
-<!-- ── ADD SHOW MODAL ──────────────────────────────── -->
+<!-- ADD THEATER MODAL -->
+<div class="modal-overlay" id="addTheaterModal">
+  <div class="modal-box">
+    <div class="modal-hdr">
+      <div class="modal-title">Add Theater</div>
+      <button class="modal-close" onclick="closeModal('addTheaterModal')">✕</button>
+    </div>
+    <div class="form-group"><label class="form-label">Theater Name</label><input class="form-control" id="t-name" placeholder="e.g. PVR Hyderabad"></div>
+    <div class="form-group"><label class="form-label">City</label><input class="form-control" id="t-city" placeholder="e.g. Hyderabad"></div>
+    <div class="form-group"><label class="form-label">Total Seats</label><input class="form-control" id="t-seats" type="number" placeholder="e.g. 200"></div>
+    <button class="btn-primary" style="width:100%;justify-content:center" onclick="addTheater()">Add Theater</button>
+  </div>
+</div>
+
+<!-- ADD SHOW MODAL — picks movie + theater separately -->
 <div class="modal-overlay" id="addShowModal">
   <div class="modal-box">
-    <div class="modal-header">
+    <div class="modal-hdr">
       <div class="modal-title">Add Show Timing</div>
       <button class="modal-close" onclick="closeModal('addShowModal')">✕</button>
     </div>
-    <input type="hidden" id="s-movieId">
     <div class="form-group">
-      <label class="form-label">Show Date & Time</label>
-      <input class="form-control-custom" id="s-showTime" type="datetime-local">
+      <label class="form-label">Select Movie</label>
+      <select class="form-control" id="s-movieId"><option value="">-- Select a movie --</option></select>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Select Theater</label>
+      <select class="form-control" id="s-theaterId"><option value="">-- Select a theater --</option></select>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Show Date and Time</label>
+      <input class="form-control" id="s-showTime" type="datetime-local">
     </div>
     <div class="form-group">
       <label class="form-label">Pricing by Section</label>
       <div class="pricing-grid">
-        <div class="pricing-item">
-          <label class="form-label gold-label">Gold (₹)</label>
-          <input class="form-control-custom" id="s-gold" type="number" placeholder="500">
-        </div>
-        <div class="pricing-item">
-          <label class="form-label silver-label">Silver (₹)</label>
-          <input class="form-control-custom" id="s-silver" type="number" placeholder="300">
-        </div>
-        <div class="pricing-item">
-          <label class="form-label diamond-label">Diamond (₹)</label>
-          <input class="form-control-custom" id="s-diamond" type="number" placeholder="700">
-        </div>
+        <div><label class="form-label gold-label">Gold (₹)</label><input class="form-control" id="s-gold" type="number" placeholder="500"></div>
+        <div><label class="form-label silver-label">Silver (₹)</label><input class="form-control" id="s-silver" type="number" placeholder="300"></div>
+        <div><label class="form-label diamond-label">Diamond (₹)</label><input class="form-control" id="s-diamond" type="number" placeholder="700"></div>
       </div>
     </div>
-    <button class="btn-primary-custom" style="width:100%;justify-content:center" onclick="addShow()">
-      Add Show
-    </button>
+    <button class="btn-primary" style="width:100%;justify-content:center" onclick="addShow()">Add Show</button>
   </div>
 </div>
 
-<!-- ── TOAST ──────────────────────────────── -->
-<div class="toast" id="toast">
-  <span class="toast-icon" id="toastIcon"></span>
-  <span id="toastMsg"></span>
-</div>
+<div class="toast" id="toast"><span id="toastIcon"></span><span id="toastMsg"></span></div>
 
+<script src="/js/axios.min.js"></script>
 <script>
-// ── AUTH ──────────────────────────────────────────────
+
+// ── AUTH ──────────────────────────────────────────────────────────────
 const token = localStorage.getItem('token');
-if (!token) window.location.href = '/login';
+if (!token) window.location.href = '/index.html';
 axios.defaults.headers.common['Authorization'] = token;
 
-// ✅ New — clears token and goes to index.html (JWT login page)
+let allMovies = [];
+let allTheaters = [];
+
+// ── LOGOUT ────────────────────────────────────────────────────────────
 function logout() {
-    // ── Remove JWT token from localStorage ────────────────
-    // Without this token, next API call will fail
-    // User will be treated as unauthenticated
     localStorage.removeItem('token');
-
-    // ── Clear axios default header ────────────────────────
-    // Removes Authorization: Bearer token from all future axios calls
     delete axios.defaults.headers.common['Authorization'];
-
-    // ── Redirect to login page ────────────────────────────
-    // index.html is our JWT login page in static/ folder
     window.location.href = '/index.html';
 }
 
-// ── TOAST ──────────────────────────────────────────────
+// ── TOAST ─────────────────────────────────────────────────────────────
 function showToast(msg, type = 'success') {
-  const t = document.getElementById('toast');
-  document.getElementById('toastMsg').textContent = msg;
-  document.getElementById('toastIcon').textContent = type === 'success' ? '✓' : '✕';
-  t.className = 'toast show ' + type;
-  setTimeout(() => t.className = 'toast', 3000);
+    const t = document.getElementById('toast');
+    document.getElementById('toastMsg').textContent = msg;
+    document.getElementById('toastIcon').textContent = type === 'success' ? '✓' : '✕';
+    t.className = 'toast show ' + type;
+    setTimeout(() => t.className = 'toast', 3000);
 }
 
-// ── MODAL ──────────────────────────────────────────────
+// ── MODAL ─────────────────────────────────────────────────────────────
 function openModal(id) { document.getElementById(id).classList.add('open'); }
 function closeModal(id) { document.getElementById(id).classList.remove('open'); }
 document.querySelectorAll('.modal-overlay').forEach(m => {
-  m.addEventListener('click', e => { if (e.target === m) m.classList.remove('open'); });
+    m.addEventListener('click', e => { if (e.target === m) m.classList.remove('open'); });
 });
 
-// ── IMAGE TAB SWITCH ──────────────────────────────────
+// ── TABS ──────────────────────────────────────────────────────────────
+function switchTab(name, btn) {
+    document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.getElementById('tab-' + name).classList.add('active');
+    btn.classList.add('active');
+    if (name === 'theaters') loadTheaters();
+    if (name === 'shows') loadShowsByTheater();
+}
+
+// ── IMAGE TAB ─────────────────────────────────────────────────────────
 function switchImgTab(tab) {
-  document.getElementById('img-url-section').style.display = tab === 'url' ? 'block' : 'none';
-  document.getElementById('img-file-section').style.display = tab === 'file' ? 'block' : 'none';
-  document.getElementById('tab-url').classList.toggle('active', tab === 'url');
-  document.getElementById('tab-file').classList.toggle('active', tab === 'file');
+    document.getElementById('img-url-sec').style.display = tab === 'url' ? 'block' : 'none';
+    document.getElementById('img-file-sec').style.display = tab === 'file' ? 'block' : 'none';
+    document.getElementById('itab-url').classList.toggle('active', tab === 'url');
+    document.getElementById('itab-file').classList.toggle('active', tab === 'file');
 }
 
-// ── RATINGS (localStorage per movie, in real app use API) ──
-function getRating(movieId) {
-  return parseFloat(localStorage.getItem('rating_' + movieId)) || 0;
-}
-function getRatingCount(movieId) {
-  return parseInt(localStorage.getItem('ratingCount_' + movieId)) || 0;
-}
-function saveRating(movieId, stars) {
-  const old = getRating(movieId);
-  const count = getRatingCount(movieId);
-  const newCount = count + 1;
-  const newAvg = ((old * count) + stars) / newCount;
-  localStorage.setItem('rating_' + movieId, newAvg.toFixed(1));
-  localStorage.setItem('ratingCount_' + movieId, newCount);
-  return { avg: newAvg.toFixed(1), count: newCount };
+// ── LOAD MOVIES ───────────────────────────────────────────────────────
+// GET /admin/movies — returns all movies globally (no theater filter)
+async function loadMovies() {
+    try {
+        const res = await axios.get('/admin/movies');
+        allMovies = res.data;
+        document.getElementById('statMovies').textContent = allMovies.length;
+
+        const grid = document.getElementById('moviesGrid');
+        if (!allMovies.length) {
+            grid.innerHTML = '<div class="empty-state"><div class="empty-icon">🎬</div><div>No movies yet. Add one!</div></div>';
+            return;
+        }
+        grid.innerHTML = allMovies.map(m => {
+            const img = m.imageUrl || m.imagePath;
+            return `
+            <div class="movie-card">
+                ${img
+                    ? `<img class="movie-poster" src="${img}" alt="${m.title}" onerror="this.style.display='none'">`
+                    : `<div class="movie-poster-ph">🎬</div>`}
+                <div class="movie-info">
+                    <div class="movie-title-card" title="${m.title}">${m.title}</div>
+                    <div class="movie-dur">${m.durationMinutes || '--'} min</div>
+                    <button class="btn-danger" style="font-size:0.72rem;padding:3px 8px"
+                        onclick="deleteMovie(${m.id})">Delete</button>
+                </div>
+            </div>`;
+        }).join('');
+    } catch(e) { showToast('Failed to load movies', 'error'); }
 }
 
-function renderStars(movieId, containerId, countId) {
-  const avg = getRating(movieId);
-  const container = document.getElementById(containerId);
-  if (!container) return;
-  container.innerHTML = '';
-  for (let i = 1; i <= 5; i++) {
-    const star = document.createElement('span');
-    star.className = 'star' + (i <= Math.round(avg) ? ' active' : '');
-    star.textContent = '★';
-    star.dataset.val = i;
-    star.dataset.movieId = movieId;
-    star.dataset.containerId = containerId;
-    star.dataset.countId = countId;
-    star.addEventListener('mouseover', function() {
-      const stars = container.querySelectorAll('.star');
-      stars.forEach((s, idx) => s.classList.toggle('hover-active', idx < this.dataset.val));
-    });
-    star.addEventListener('mouseleave', function() {
-      container.querySelectorAll('.star').forEach(s => s.classList.remove('hover-active'));
-    });
-    star.addEventListener('click', function() {
-      const { avg, count } = saveRating(this.dataset.movieId, parseInt(this.dataset.val));
-      renderStars(this.dataset.movieId, this.dataset.containerId, this.dataset.countId);
-      document.getElementById(this.dataset.countId).textContent = avg + ' (' + count + ')';
-      showToast('Rating saved!');
-    });
-    container.appendChild(star);
-  }
-}
-
-// ── LOAD THEATERS ──────────────────────────────────────
+// ── LOAD THEATERS ─────────────────────────────────────────────────────
 async function loadTheaters() {
-  try {
-    const res = await axios.get('/admin/theaters');
-    const tbody = document.getElementById('theatersBody');
-    if (!res.data.length) {
-      tbody.innerHTML = '<tr><td colspan="5"><div class="empty-state"><div class="empty-icon">🎭</div><div>No theaters yet. Add one!</div></div></td></tr>';
-      return;
-    }
-    tbody.innerHTML = res.data.map(t => `
-      <tr id="theater-row-${t.id}">
-        <td class="td-id">#${t.id}</td>
-        <td style="font-weight:500">${t.name}</td>
-        <td><span class="city-badge">${t.city}</span></td>
-        <td><span class="seats-badge">${t.totalSeats} seats</span></td>
-        <td>
-          <div class="actions-cell">
-            <button class="btn-accent2" onclick="openAddMovie(${t.id})">+ Movie</button>
-            <button class="btn-ghost" onclick="toggleMovies(${t.id})">Films</button>
-            <button class="btn-danger-custom" onclick="deleteTheater(${t.id})">Delete</button>
-          </div>
-        </td>
-      </tr>
-      <tr class="movies-row" id="movies-row-${t.id}">
-        <td colspan="5">
-          <div class="movies-section">
-            <div class="movies-section-header">
-              <div class="movies-section-title">Now Showing at ${t.name}</div>
-            </div>
-            <div class="movies-grid" id="movies-grid-${t.id}">
-              <div class="loading">Loading movies...</div>
-            </div>
-          </div>
-        </td>
-      </tr>
-    `).join('');
-  } catch (err) {
-    document.getElementById('theatersBody').innerHTML =
-      '<tr><td colspan="5" class="loading">Failed to load theaters</td></tr>';
-  }
+    try {
+        const res = await axios.get('/admin/theaters');
+        allTheaters = res.data;
+        document.getElementById('statTheaters').textContent = allTheaters.length;
+        const tbody = document.getElementById('theatersBody');
+        if (!allTheaters.length) {
+            tbody.innerHTML = '<tr><td colspan="5"><div class="empty-state"><div class="empty-icon">🏛️</div><div>No theaters yet.</div></div></td></tr>';
+            return;
+        }
+        tbody.innerHTML = allTheaters.map(t => `
+            <tr>
+                <td class="td-id">#${t.id}</td>
+                <td style="font-weight:500">${t.name}</td>
+                <td><span class="city-badge">${t.city}</span></td>
+                <td><span class="seats-badge">${t.totalSeats} seats</span></td>
+                <td><div class="actions-cell"><button class="btn-danger" onclick="deleteTheater(${t.id})">Delete</button></div></td>
+            </tr>`).join('');
+    } catch(e) { showToast('Failed to load theaters', 'error'); }
 }
 
-// ── TOGGLE MOVIES ROW ──────────────────────────────────
-async function toggleMovies(theaterId) {
-  const row = document.getElementById('movies-row-' + theaterId);
-  const isOpen = row.classList.contains('open');
-  row.classList.toggle('open');
-  if (!isOpen) loadMovies(theaterId);
+// ── LOAD SHOWS BY THEATER ─────────────────────────────────────────────
+// Fetches shows for all movies and groups them by theater
+// This is the correct design — shows have both movie + theater
+async function loadShowsByTheater() {
+    const container = document.getElementById('showsByTheater');
+    container.innerHTML = '<div class="loading">Loading shows...</div>';
+    try {
+        const moviesRes = await axios.get('/admin/movies');
+        const movies = moviesRes.data;
+
+        // Fetch shows for every movie in parallel
+        const allShowsArr = [];
+        await Promise.all(movies.map(async m => {
+            try {
+                const res = await axios.get('/admin/movies/' + m.id + '/shows');
+                allShowsArr.push(...res.data);
+            } catch(e) {}
+        }));
+
+        document.getElementById('statShows').textContent = allShowsArr.length;
+
+        if (!allShowsArr.length) {
+            container.innerHTML = '<div class="empty-state"><div class="empty-icon">🕐</div><div>No shows yet. Click + Add Show!</div></div>';
+            return;
+        }
+
+        // Group by theater
+        const byTheater = {};
+        allShowsArr.forEach(s => {
+            const tid = s.theater?.id || 'unknown';
+            if (!byTheater[tid]) byTheater[tid] = { theater: s.theater || {}, shows: [] };
+            byTheater[tid].shows.push(s);
+        });
+
+        container.innerHTML = Object.values(byTheater).map(group => {
+            const t = group.theater;
+            const rows = group.shows.map(s => {
+                const dt = new Date(s.showTime);
+                const dateStr = dt.toLocaleDateString('en-IN', { day:'numeric', month:'short', year:'numeric' });
+                const timeStr = dt.toLocaleTimeString('en-IN', { hour:'2-digit', minute:'2-digit' });
+                return `
+                <div class="show-row">
+                    <div>
+                        <div class="show-movie-name">🎬 ${s.movie?.title || 'Movie'}</div>
+                        <div class="show-time-info">📅 ${dateStr} at ${timeStr}</div>
+                    </div>
+                    <div style="display:flex;align-items:center;gap:12px">
+                        <div class="show-prices">
+                            <span class="price-chip gold">🥇 ₹${s.goldPrice}</span>
+                            <span class="price-chip silver">🥈 ₹${s.silverPrice}</span>
+                            <span class="price-chip diamond">💎 ₹${s.diamondPrice}</span>
+                        </div>
+                        <button class="btn-danger" style="font-size:0.72rem;padding:3px 8px"
+                            onclick="deleteShow(${s.id})">Del</button>
+                    </div>
+                </div>`;
+            }).join('');
+            return `
+            <div class="theater-panel">
+                <div class="theater-panel-hdr">
+                    <div>
+                        <div class="theater-panel-name">${t.name || 'Theater'}</div>
+                        <div style="font-size:0.78rem;color:var(--muted);margin-top:2px">📍 ${t.city || ''} · ${t.totalSeats || '--'} seats</div>
+                    </div>
+                    <span class="city-badge">${group.shows.length} shows</span>
+                </div>
+                <div class="shows-section">${rows}</div>
+            </div>`;
+        }).join('');
+    } catch(e) { showToast('Failed to load shows', 'error'); }
 }
 
-// ── LOAD MOVIES ──────────────────────────────────────────
-async function loadMovies(theaterId) {
-  const grid = document.getElementById('movies-grid-' + theaterId);
-  try {
-    const res = await axios.get('/admin/movies/theater/' + theaterId);
-    if (!res.data.length) {
-      grid.innerHTML = '<div style="color:var(--muted);font-size:0.85rem">No movies yet. Click "+ Movie" to add one.</div>';
-      return;
-    }
-    grid.innerHTML = res.data.map(m => {
-      const imgSrc = m.imageUrl || m.imagePath;
-      const starContainerId = 'stars-' + m.id;
-      const countId = 'rcount-' + m.id;
-      const avg = getRating(m.id);
-      const count = getRatingCount(m.id);
-      return `
-        <div class="movie-card">
-          ${imgSrc
-            ? `<img class="movie-poster" src="${imgSrc}" alt="${m.title}" onerror="this.style.display='none'">`
-            : `<div class="movie-poster-placeholder">🎬</div>`
-          }
-          <div class="movie-info">
-            <div class="movie-title" title="${m.title}">${m.title}</div>
-            <div class="movie-duration">${m.durationMinutes} min</div>
-            <div class="star-rating" id="${starContainerId}"></div>
-            <div style="font-size:0.72rem;color:var(--muted);margin-bottom:8px">
-              <span id="${countId}">${avg > 0 ? avg + ' (' + count + ')' : 'No ratings yet'}</span>
-            </div>
-            <div id="shows-${m.id}" class="shows-list"></div>
-            <div class="movie-actions">
-              <button class="btn-ghost" style="font-size:0.75rem;padding:4px 10px" onclick="openAddShow(${m.id})">+ Show</button>
-              <button class="btn-danger-custom" style="font-size:0.75rem;padding:4px 10px" onclick="deleteMovie(${m.id}, ${theaterId})">Del</button>
-            </div>
-          </div>
-        </div>
-      `;
-    }).join('');
-
-    // Render stars + shows for each movie
-    for (const m of res.data) {
-      renderStars(m.id, 'stars-' + m.id, 'rcount-' + m.id);
-      loadShows(m.id);
-    }
-  } catch (err) {
-    grid.innerHTML = '<div style="color:#ff6b6b;font-size:0.85rem">Failed to load movies</div>';
-  }
-}
-
-// ── LOAD SHOWS ──────────────────────────────────────────
-async function loadShows(movieId) {
-  try {
-    const res = await axios.get('/admin/movies/' + movieId + '/shows');
-    const el = document.getElementById('shows-' + movieId);
-    if (!el) return;
-    if (!res.data.length) { el.innerHTML = ''; return; }
-    el.innerHTML = res.data.map(s => {
-      const dt = new Date(s.showTime);
-      const formatted = dt.toLocaleDateString('en-IN', { day:'numeric', month:'short' })
-        + ' ' + dt.toLocaleTimeString('en-IN', { hour:'2-digit', minute:'2-digit' });
-      return `<span class="show-chip">🕐 ${formatted}</span>`;
-    }).join('');
-  } catch (e) {}
-}
-
-// ── ADD THEATER ──────────────────────────────────────────
-async function addTheater() {
-  const name = document.getElementById('t-name').value.trim();
-  const city = document.getElementById('t-city').value.trim();
-  const totalSeats = parseInt(document.getElementById('t-seats').value);
-  if (!name || !city || !totalSeats) { showToast('Fill all fields', 'error'); return; }
-  try {
-    await axios.post('/admin/theaters', { name, city, totalSeats });
-    closeModal('addTheaterModal');
-    document.getElementById('t-name').value = '';
-    document.getElementById('t-city').value = '';
-    document.getElementById('t-seats').value = '';
-    showToast('Theater added!');
-    loadTheaters();
-  } catch (err) { showToast('Failed to add theater', 'error'); }
-}
-
-// ── DELETE THEATER ────────────────────────────────────────
-async function deleteTheater(id) {
-  if (!confirm('Delete this theater and all its movies?')) return;
-  try {
-    await axios.delete('/admin/theaters/' + id);
-    showToast('Theater deleted');
-    loadTheaters();
-  } catch (err) { showToast('Failed to delete', 'error'); }
-}
-
-// ── ADD MOVIE ────────────────────────────────────────────
-function openAddMovie(theaterId) {
-  document.getElementById('m-theaterId').value = theaterId;
-  document.getElementById('m-title').value = '';
-  document.getElementById('m-desc').value = '';
-  document.getElementById('m-duration').value = '';
-  document.getElementById('m-imageUrl').value = '';
-  openModal('addMovieModal');
-  
-}
-
+// ── ADD MOVIE ─────────────────────────────────────────────────────────
+// Movie is global — no theater assignment here
 async function addMovie() {
-  const theaterId = document.getElementById('m-theaterId').value;
-  const title = document.getElementById('m-title').value.trim();
-  const description = document.getElementById('m-desc').value.trim();
-  const durationMinutes = parseInt(document.getElementById('m-duration').value);
-  const imageUrl = document.getElementById('m-imageUrl').value.trim();
-  const fileInput = document.getElementById('m-imageFile');
-  const hasFile = fileInput.files && fileInput.files[0];
-  
-  
-      console.log('theaterId:', theaterId);
-      console.log('title:', title);
-      console.log('duration:', durationMinutes);
-      console.log('imageUrl:', imageUrl)
+    const title = document.getElementById('m-title').value.trim();
+    const description = document.getElementById('m-desc').value.trim();
+    const durationMinutes = parseInt(document.getElementById('m-duration').value);
+    const imageUrl = document.getElementById('m-imageUrl').value.trim();
+    const fileInput = document.getElementById('m-imageFile');
+    const hasFile = fileInput.files && fileInput.files[0];
 
-  if (!title || !durationMinutes) { showToast('Fill required fields', 'error'); return; }
+    if (!title) { showToast('Movie title required', 'error'); return; }
+    if (!durationMinutes || isNaN(durationMinutes)) { showToast('Valid duration required', 'error'); return; }
 
-  try {
-    if (hasFile) {
-      const formData = new FormData();
-      formData.append('title', title);
-      formData.append('description', description);
-      formData.append('durationMinutes', durationMinutes);
-      formData.append('theaterId', theaterId);
-      formData.append('imageFile', fileInput.files[0]);
-      await axios.post('/admin/movies/upload', formData, {
-        headers: { 'Content-Type': 'multipart/form-data' }
-      });
-    } else {
-      await axios.post('/admin/movies', {
-        title, description, durationMinutes, imageUrl,
-        theater: { id: parseInt(theaterId) }
-      });
-    }
-	
-	
-    closeModal('addMovieModal');
-    showToast('Movie added!');
-    loadMovies(theaterId);
-  } catch (err) { showToast('Failed to add movie', 'error'); }
+    try {
+        if (hasFile) {
+            const fd = new FormData();
+            fd.append('title', title);
+            fd.append('description', description);
+            fd.append('durationMinutes', durationMinutes);
+            if (imageUrl) fd.append('imageUrl', imageUrl);
+            fd.append('imageFile', fileInput.files[0]);
+            await axios.post('/admin/movies/upload', fd, { headers: { 'Content-Type': 'multipart/form-data' } });
+        } else {
+            await axios.post('/admin/movies/add', { title, description, durationMinutes, imageUrl });
+        }
+        closeModal('addMovieModal');
+        document.getElementById('m-title').value = '';
+        document.getElementById('m-desc').value = '';
+        document.getElementById('m-duration').value = '';
+        document.getElementById('m-imageUrl').value = '';
+        showToast('Movie added!');
+        loadMovies();
+    } catch(e) { showToast('Failed to add movie', 'error'); }
 }
 
-// ── DELETE MOVIE ─────────────────────────────────────────
-async function deleteMovie(movieId, theaterId) {
-  if (!confirm('Delete this movie?')) return;
-  try {
-    await axios.delete('/admin/movies/' + movieId);
-    showToast('Movie deleted');
-    loadMovies(theaterId);
-  } catch (err) { showToast('Failed to delete movie', 'error'); }
+// ── DELETE MOVIE ──────────────────────────────────────────────────────
+async function deleteMovie(id) {
+    if (!confirm('Delete this movie and all its shows?')) return;
+    try {
+        await axios.delete('/admin/movies/' + id);
+        showToast('Movie deleted');
+        loadMovies();
+    } catch(e) { showToast('Failed to delete movie', 'error'); }
 }
 
-// ── ADD SHOW ─────────────────────────────────────────────
-function openAddShow(movieId) {
-  document.getElementById('s-movieId').value = movieId;
-  document.getElementById('s-showTime').value = '';
-  document.getElementById('s-gold').value = '';
-  document.getElementById('s-silver').value = '';
-  document.getElementById('s-diamond').value = '';
-  openModal('addShowModal');
+// ── ADD THEATER ───────────────────────────────────────────────────────
+async function addTheater() {
+    const name = document.getElementById('t-name').value.trim();
+    const city = document.getElementById('t-city').value.trim();
+    const totalSeats = parseInt(document.getElementById('t-seats').value);
+    if (!name || !city || !totalSeats) { showToast('Fill all fields', 'error'); return; }
+    try {
+        await axios.post('/admin/theaters', { name, city, totalSeats });
+        closeModal('addTheaterModal');
+        document.getElementById('t-name').value = '';
+        document.getElementById('t-city').value = '';
+        document.getElementById('t-seats').value = '';
+        showToast('Theater added!');
+        loadTheaters();
+    } catch(e) { showToast('Failed to add theater', 'error'); }
 }
 
-async function addShow() {
-  const movieId = document.getElementById('s-movieId').value;
-  const showTime = document.getElementById('s-showTime').value;
-  const goldPrice = parseFloat(document.getElementById('s-gold').value);
-  const silverPrice = parseFloat(document.getElementById('s-silver').value);
-  const diamondPrice = parseFloat(document.getElementById('s-diamond').value);
-  if (!showTime || !goldPrice || !silverPrice || !diamondPrice) {
-    showToast('Fill all fields', 'error'); return;
-  }
-  try {
-    await axios.post('/admin/movies/' + movieId + '/shows', {
-      showTime, goldPrice, silverPrice, diamondPrice
+// ── DELETE THEATER ────────────────────────────────────────────────────
+async function deleteTheater(id) {
+    if (!confirm('Delete this theater?')) return;
+    try {
+        await axios.delete('/admin/theaters/' + id);
+        showToast('Theater deleted');
+        loadTheaters();
+    } catch(e) { showToast('Failed to delete', 'error'); }
+}
+
+// ── OPEN ADD SHOW MODAL ───────────────────────────────────────────────
+// Loads fresh movies and theaters into dropdowns
+async function openAddShowModal() {
+    try {
+        const [mr, tr] = await Promise.all([
+            axios.get('/admin/movies'),
+            axios.get('/admin/theaters')
+        ]);
+        allMovies = mr.data;
+        allTheaters = tr.data;
+    } catch(e) {}
+
+    // Populate movie dropdown
+    const ms = document.getElementById('s-movieId');
+    ms.innerHTML = '<option value="">-- Select a movie --</option>';
+    allMovies.forEach(m => {
+        ms.innerHTML += `<option value="${m.id}">${m.title} (${m.durationMinutes} min)</option>`;
     });
-    closeModal('addShowModal');
-    showToast('Show timing added!');
-    loadShows(movieId);
-  } catch (err) { showToast('Failed to add show', 'error'); }
+
+    // Populate theater dropdown
+    const ts = document.getElementById('s-theaterId');
+    ts.innerHTML = '<option value="">-- Select a theater --</option>';
+    allTheaters.forEach(t => {
+        ts.innerHTML += `<option value="${t.id}">${t.name} — ${t.city}</option>`;
+    });
+
+    document.getElementById('s-showTime').value = '';
+    document.getElementById('s-gold').value = '';
+    document.getElementById('s-silver').value = '';
+    document.getElementById('s-diamond').value = '';
+    openModal('addShowModal');
 }
 
-// ── INIT ─────────────────────────────────────────────────
-loadTheaters();
+// ── ADD SHOW ──────────────────────────────────────────────────────────
+// POST /admin/movies/shows
+// Sends: { movieId, theaterId, showTime, goldPrice, silverPrice, diamondPrice }
+// Show entity links movie + theater — correct production design
+async function addShow() {
+    const movieId = document.getElementById('s-movieId').value;
+    const theaterId = document.getElementById('s-theaterId').value;
+    const showTime = document.getElementById('s-showTime').value;
+    const goldPrice = parseFloat(document.getElementById('s-gold').value);
+    const silverPrice = parseFloat(document.getElementById('s-silver').value);
+    const diamondPrice = parseFloat(document.getElementById('s-diamond').value);
+
+    if (!movieId) { showToast('Select a movie', 'error'); return; }
+    if (!theaterId) { showToast('Select a theater', 'error'); return; }
+    if (!showTime) { showToast('Select date and time', 'error'); return; }
+    if (!goldPrice || !silverPrice || !diamondPrice) { showToast('Enter all prices', 'error'); return; }
+
+    try {
+        await axios.post('/admin/movies/shows', {
+            movieId: parseInt(movieId),
+            theaterId: parseInt(theaterId),
+            showTime: showTime,
+            goldPrice, silverPrice, diamondPrice
+        });
+        closeModal('addShowModal');
+        showToast('Show added!');
+        loadShowsByTheater();
+        // Switch to shows tab
+        document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+        document.getElementById('tab-shows').classList.add('active');
+        document.querySelectorAll('.tab')[2].classList.add('active');
+    } catch(e) { showToast('Failed to add show', 'error'); }
+}
+
+// ── DELETE SHOW ───────────────────────────────────────────────────────
+async function deleteShow(id) {
+    if (!confirm('Delete this show?')) return;
+    try {
+        await axios.delete('/admin/shows/' + id);
+        showToast('Show deleted');
+        loadShowsByTheater();
+    } catch(e) { showToast('Failed to delete show', 'error'); }
+}
+
+// ── INIT ──────────────────────────────────────────────────────────────
+loadMovies();
+
 </script>
 </body>
 </html>

@@ -3,6 +3,7 @@ package com.sb.MovieBooking.controller;
 import com.sb.MovieBooking.entity.Booking;
 import com.sb.MovieBooking.entity.Movie;
 import com.sb.MovieBooking.entity.Theater;
+import com.sb.MovieBooking.model.ShowRequest;
 import com.sb.MovieBooking.entity.Show;
 import com.sb.MovieBooking.repository.BookingRepository;
 import com.sb.MovieBooking.repository.MovieRepository;
@@ -33,22 +34,20 @@ public class MovieController {
 	// No login required — anyone can see what movies are showing
 	// Used by user home page to display Now Showing grid
 	// Returns all movies with their theater details
-	@GetMapping("/public/movies")
-	public List<Movie> getAllMoviesPublic() {
-	    // findAll() → SELECT * FROM movies (with theater JOIN)
-	    return movieRepo.findAll();
-	}
-
-	// ── GET SHOWS FOR A MOVIE (Public) ────────────────────────────────────
-	// URL: GET /public/movies/1/shows
-	// @PathVariable Long id → reads {id} from URL
-	// No login required — users need to see show timings before booking
-	// Returns all shows for that movie including theater + pricing info
-	@GetMapping("/public/movies/{id}/shows")
-	public List<Show> getShowsPublic(@PathVariable Long id) {
-	    // findByMovieId() → SELECT * FROM shows WHERE movie_id = ?
-	    return showRepo.findByMovieId(id);
-	}
+	/*
+	 * @GetMapping("/public/movies") public List<Movie> getAllMoviesPublic() { //
+	 * findAll() → SELECT * FROM movies (with theater JOIN) return
+	 * movieRepo.findAll(); }
+	 * 
+	 * // ── GET SHOWS FOR A MOVIE (Public) ──────────────────────────────────── //
+	 * URL: GET /public/movies/1/shows // @PathVariable Long id → reads {id} from
+	 * URL // No login required — users need to see show timings before booking //
+	 * Returns all shows for that movie including theater + pricing info
+	 * 
+	 * @GetMapping("/public/movies/{id}/shows") public List<Show>
+	 * getShowsPublic(@PathVariable Long id) { // findByMovieId() → SELECT * FROM
+	 * shows WHERE movie_id = ? return showRepo.findByMovieId(id); }
+	 */
 	
 	
 	
@@ -58,19 +57,33 @@ public class MovieController {
     @Autowired private ShowRepository showRepo;
     @Autowired private BookingRepository bookingRepo;
     @Autowired private SeatRepository seatRepo;
-
-    // Get all movies for a theater
+    // ── GET ALL MOVIES (for admin dropdown when adding show) ──────────
+    // URL: GET /admin/movies
+    // Returns all movies globally — not filtered by theater
+    @GetMapping
+    public List<Movie> getAllMovies() {
+        return movieRepo.findAll();
+    }   
+    
+    
+    
+    /*// Get all movies for a theater
     @GetMapping("/theater/{theaterId}")
     public List<Movie> getMoviesByTheater(@PathVariable Long theaterId) {
         return movieRepo.findByTheaterId(theaterId);
-    }
+    }*/
+    
+   //── ADD MOVIE (URL image) ─────────────────────────────────────────
+    // URL: POST /admin/movies
+    // Movie is now global — no theater field needed
+    // Theater is assigned when adding a Show, not a Movie
 
     // Add movie with URL image
-    @PostMapping
+    @PostMapping("/add")
     public ResponseEntity<Movie> addMovie(@RequestBody Movie movie) {
-        Theater theater = theaterRepo.findById(movie.getTheater().getId())
-            .orElseThrow(() -> new RuntimeException("Theater not found"));
-        movie.setTheater(theater);
+       // Theater theater = theaterRepo.findById(movie.getTheater().getId())
+       //     .orElseThrow(() -> new RuntimeException("Theater not found"));
+     //   movie.setTheater(theater);
         return ResponseEntity.ok(movieRepo.save(movie));
     }
 
@@ -79,7 +92,7 @@ public class MovieController {
     public ResponseEntity<Movie> addMovieWithImage(
             @RequestParam String title,
             @RequestParam String description,
-            @RequestParam int durationMinutes,
+            @RequestParam Integer durationMinutes,
             @RequestParam Long theaterId,
             @RequestParam(required = false) String imageUrl,
             @RequestParam(required = false) MultipartFile imageFile) throws IOException {
@@ -89,9 +102,9 @@ public class MovieController {
         movie.setDescription(description);
         movie.setDurationMinutes(durationMinutes);
 
-        Theater theater = theaterRepo.findById(theaterId)
-            .orElseThrow(() -> new RuntimeException("Theater not found"));
-        movie.setTheater(theater);
+      //  Theater theater = theaterRepo.findById(theaterId)
+           // .orElseThrow(() -> new RuntimeException("Theater not found"));
+      //  movie.setTheater(theater);
 
         // Handle image
         if (imageFile != null && !imageFile.isEmpty()) {
@@ -201,6 +214,42 @@ public class MovieController {
     *
     *
     */
+    // ── ADD SHOW ──────────────────────────────────────────────────────
+    // URL: POST /admin/shows
+    // Now takes BOTH movieId AND theaterId separately
+    // This is the correct design — show links movie + theater
+  /*  
+    Movies section → Add Movie globally
+    Theaters section → Add Show 
+                       (select which movie + time + pricing) */
+    
+    @PostMapping("/shows")
+    public ResponseEntity<Show> addShow(@RequestBody ShowRequest req){
+    	
+    	Movie movie = movieRepo.findById(req.getMovieId())
+    			.orElseThrow(() ->new RuntimeException("Movie not found"));
+    	Theater theatre = theaterRepo.findById(req.getTheaterId())
+    			.orElseThrow(() -> new RuntimeException("Theatre not found"));
+    	
+    	Show show =  new Show();
+    	show.setMovie(movie);
+    	show.setTheater(theatre);
+    	show.setShowTime(req.getShowTime());
+    	show.setGoldPrice(req.getGoldPrice());
+    	show.setSilverPrice(req.getSilverPrice());
+    	show.setDiamondPrice(req.getDiamondPrice());
+    	
+    	
+    	
+		return ResponseEntity.ok(showRepo.save(show));
+    	
+     	
+    	
+    }
+    
+   
+    
+    /*
 
     // Add show timing to a movie
     @PostMapping("/{movieId}/shows")
@@ -212,7 +261,7 @@ public class MovieController {
         show.setMovie(movie);
         show.setTheater(movie.getTheater());
         return ResponseEntity.ok(showRepo.save(show));
-    }
+    }*/
 
     // Get shows for a movie
     @GetMapping("/{movieId}/shows")

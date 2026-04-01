@@ -20,9 +20,17 @@ public class Movie {
     // Integer (wrapper class) can hold null safely
     private Integer durationMinutes;
 
+    
+  /**  
+    
+ // ── REMOVED: theater field ────────────────────────────────────────
+    // Movie no longer belongs to one theater
+    // A movie can play at MANY theaters via Show entity
+    // Show has both movie_id and theater_id
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "theater_id")
-    private Theater theater;
+    private Theater theater; 
+    */
 
     public Movie() {}
 
@@ -47,7 +55,5 @@ public class Movie {
     public void setDurationMinutes(Integer durationMinutes) {
         this.durationMinutes = durationMinutes;
     }
-
-    public Theater getTheater() { return theater; }
-    public void setTheater(Theater theater) { this.theater = theater; }
+ 
 }

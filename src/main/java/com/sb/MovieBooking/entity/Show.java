@@ -11,11 +11,17 @@ public class Show {
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
 
-	@ManyToOne
+	// ── Movie relationship ────────────────────────────────────────────
+    // Show links movie to a theater for a specific time
+	@ManyToOne(fetch=FetchType.EAGER)
 	@JoinColumn(name = "movie_id")
 	private Movie movie;
 
-	@ManyToOne
+	
+	// ── Theater relationship ──────────────────────────────────────────
+    // EAGER ensures theater data loads WITH show
+    // Without this, s.theater is null in JSON response
+	@ManyToOne(fetch=FetchType.EAGER)
 	@JoinColumn(name = "theater_id")
 	private Theater theater;
 

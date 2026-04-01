@@ -104,6 +104,9 @@ public class SearchController {
     // URL: GET /public/movies
     // Called by user/home.html to load the Now Showing grid
     // No login needed — /public/** is in permitAll()
+ // ── GET ALL MOVIES (public) ───────────────────────────────────────────
+ // Returns movies globally — no theater attached to movie
+ // Theater info comes from shows when user clicks a movie
     @GetMapping("/movies")
     public List<Movie> getAllMovies() {
         // SELECT * FROM movies (with theater JOIN)
@@ -114,6 +117,9 @@ public class SearchController {
     // URL: GET /public/movies/1/shows
     // Called when user clicks a movie card to see show timings
     // Returns all shows with Gold/Silver/Diamond pricing
+ // ── GET SHOWS FOR A MOVIE (public) ────────────────────────────────────
+ // Returns shows with theater data (EAGER loaded)
+ // Frontend groups these by theater to show multiple theaters
     @GetMapping("/movies/{id}/shows")
     public List<Show> getShowsForMovie(@PathVariable Long id) {
         // SELECT * FROM shows WHERE movie_id = ?

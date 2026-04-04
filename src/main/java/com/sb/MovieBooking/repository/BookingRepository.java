@@ -1,6 +1,8 @@
 package com.sb.MovieBooking.repository;
 
 import com.sb.MovieBooking.entity.Booking;
+import com.sb.MovieBooking.model.BookingStatus;
+
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -11,7 +13,7 @@ import java.util.List;
 public interface BookingRepository extends JpaRepository<Booking, Long> {
 	// ── Count bookings by status ──────────────────────────────────────────
 	@Query("SELECT COUNT(b) FROM Booking b WHERE b.status = :status")
-	long countByStatus(@Param("status") String status);
+	long countByStatus(@Param("status") BookingStatus confirmed);
 
 	// ── Total revenue from confirmed bookings ─────────────────────────────
 	@Query("SELECT COALESCE(SUM(b.amountPaid), 0) FROM Booking b WHERE b.status = 'CONFIRMED'")

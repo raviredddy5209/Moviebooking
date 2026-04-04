@@ -121,6 +121,7 @@ select.form-control option { background: var(--surface2); color: var(--text); }
     <button class="tab active" onclick="switchTab('movies',this)">🎬 Movies</button>
     <button class="tab" onclick="switchTab('theaters',this)">🏛️ Theaters</button>
     <button class="tab" onclick="switchTab('shows',this)">🕐 Shows</button>
+	<button class="tab" onclick="switchTab('analytics',this)">Analytics</button> <!-- CHANGE -->
   </div>
 
   <!-- MOVIES TAB -->
@@ -146,6 +147,50 @@ select.form-control option { background: var(--surface2); color: var(--text); }
     </div>
   </div>
 
+  <!-- CHANGE: ANALYTICS TAB START -->
+  <div id="tab-analytics" class="tab-content">
+
+    <h2>Analytics Dashboard</h2>
+
+    <div class="stats-row" style="grid-template-columns: repeat(4,1fr);">
+      <div class="stat-card">
+        <div class="stat-number" id="totalBookings">—</div>
+        <div>Total Bookings</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-number" id="confirmedBookings">—</div>
+        <div>Confirmed</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-number" id="cancelledBookings">—</div>
+        <div>Cancelled</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-number" id="totalRevenue">—</div>
+        <div>Revenue</div>
+      </div>
+    </div>
+
+    <h3>All Bookings</h3>
+    <table>
+      <tbody id="bookingsTable"></tbody>
+    </table>
+
+    <h3>Revenue by Movie</h3>
+    <table>
+      <tbody id="movieRevenueTable"></tbody>
+    </table>
+
+    <h3>Revenue by Theater</h3>
+    <table>
+      <tbody id="theaterRevenueTable"></tbody>
+    </table>
+
+  </div>
+  <!-- CHANGE: ANALYTICS TAB END -->
+  
+  
+  
   <!-- SHOWS TAB -->
   <div class="tab-content" id="tab-shows">
     <div class="section-header">
@@ -246,7 +291,12 @@ select.form-control option { background: var(--surface2); color: var(--text); }
 // ── AUTH ──────────────────────────────────────────────────────────────
 const token = localStorage.getItem('token');
 if (!token) window.location.href = '/index.html';
-axios.defaults.headers.common['Authorization'] = token;
+//axios.defaults.headers.common['Authorization'] = token;
+// ✅ Fix — strip "Bearer " if already present, then add it clean
+
+// ── Always ensure Bearer prefix is present ────────────────────────────
+axios.defaults.headers.common['Authorization'] = 
+    token.startsWith('Bearer ') ? token : 'Bearer ' + token;
 
 let allMovies = [];
 let allTheaters = [];
@@ -282,6 +332,7 @@ function switchTab(name, btn) {
     btn.classList.add('active');
     if (name === 'theaters') loadTheaters();
     if (name === 'shows') loadShowsByTheater();
+	if (name === 'analytics') loadAnalytics();
 }
 
 // ── IMAGE TAB ─────────────────────────────────────────────────────────
@@ -565,6 +616,54 @@ async function deleteShow(id) {
         showToast('Show deleted');
         loadShowsByTheater();
     } catch(e) { showToast('Failed to delete show', 'error'); }
+}
+// CHANGE: ANALYTICS DATA LOADER
+async function loadAnalytics() {
+    try {
+        const stats = (await axios.get('/admin/analytics/stats')).data;
+        const bookings = (await axios.get('/admin/analytics/bookings')).data;
+        const movieRevenue = (await axios.get('/admin/analytics/revenue-by-movie')).data;
+        const theaterRevenue = (await axios.get('/admin/analytics/revenue-by-theater')).data;
+
+        document.getElementById('totalBookings').textContent = stats.totalBookings;
+        document.getElementById('confirmedBookings').textContent = stats.confirmed;
+        document.getElementById('cancelledBookings').textContent = stats.cancelled;
+        document.getElementById('totalRevenue').textContent = "₹" + stats.totalRevenue;
+
+        document.getElementById('bookingsTable').innerHTML =
+            bookings.map(b => `
+            <tr>
+              <td>${b.bookingId}</td>
+              <td>${b.userEmail}</td>
+              <td>${b.movieTitle}</td>
+              <td>${b.theaterName}</td>
+              <td>${b.seatNumber}</td>
+              <td>${b.status}</td>
+              <td>₹${b.amountPaid}</td>
+              <td>${new Date(b.bookedAt).toLocaleString()}</td>
+            </tr>
+        `).join('');
+
+        document.getElementById('movieRevenueTable').innerHTML =
+            movieRevenue.map(m => `
+            <tr>
+              <td>${m.movie}</td>
+              <td>₹${m.revenue}</td>
+            </tr>
+        `).join('');
+
+        document.getElementById('theaterRevenueTable').innerHTML =
+            theaterRevenue.map(t => `
+            <tr>
+              <td>${t.theater}</td>
+              <td>₹${t.revenue}</td>
+            </tr>
+        `).join('');
+
+    } catch (e) {
+        console.error(e);
+        alert("Failed to load analytics");
+    }
 }
 
 // ── INIT ──────────────────────────────────────────────────────────────

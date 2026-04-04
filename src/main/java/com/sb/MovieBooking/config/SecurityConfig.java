@@ -91,14 +91,14 @@ public class SecurityConfig {
                 	 // ── Only redirect GET requests to login page ──────────────
                     // POST/DELETE/PUT requests should return 401 JSON, not redirect
                     // Otherwise error responses loop back to index.html
-                	if ("GET".equals(request.getMethod())) {
-                        response.sendRedirect("/index.html");
-                    } else {
+                //	if ("GET".equals(request.getMethod())) {
+                  //      response.sendRedirect("/index.html");
+                    //} else {
                         // ── Return 401 JSON for API calls ─────────────────────
                         response.setStatus(401);
                         response.setContentType("application/json");
                         response.getWriter().write("{\"error\":\"Unauthorized\"}");
-                    }
+                  //  }
                     //response.sendRedirect("/index.html");
                 })
             )

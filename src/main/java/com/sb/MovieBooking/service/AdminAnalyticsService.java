@@ -1,5 +1,6 @@
 package com.sb.MovieBooking.service;
 import com.sb.MovieBooking.entity.Booking;
+import com.sb.MovieBooking.model.BookingStatus;
 import com.sb.MovieBooking.entity.AdminBookingDto;
 import com.sb.MovieBooking.repository.*;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,8 +23,8 @@ public class AdminAnalyticsService {
         Map<String, Object> stats = new HashMap<>();
 
         long totalBookings   = bookingRepo.count();
-        long confirmedCount  = bookingRepo.countByStatus("CONFIRMED");
-        long cancelledCount  = bookingRepo.countByStatus("CANCELLED");
+        long confirmedCount  = bookingRepo.countByStatus(BookingStatus.CONFIRMED);
+        long cancelledCount  = bookingRepo.countByStatus(BookingStatus.CANCELLED);
         double totalRevenue  = bookingRepo.sumRevenue();
 
         stats.put("totalMovies",    movieRepo.count());
@@ -56,8 +57,8 @@ public class AdminAnalyticsService {
         return bookingRepo.findAll()
                 .stream()
                 .filter(b -> b.getShow() != null && b.getAmountPaid() != null)
-                .filter(b -> "CONFIRMED".equals(
-                        b.getStatus() != null ? b.getStatus().name() : ""))
+                .filter(b ->  
+                        b.getStatus() == BookingStatus.CONFIRMED)
                 .collect(Collectors.groupingBy(
                         b -> b.getShow().getMovie().getTitle(),
                         Collectors.summingDouble(Booking::getAmountPaid)
@@ -79,8 +80,7 @@ public class AdminAnalyticsService {
         return bookingRepo.findAll()
                 .stream()
                 .filter(b -> b.getShow() != null && b.getAmountPaid() != null)
-                .filter(b -> "CONFIRMED".equals(
-                        b.getStatus() != null ? b.getStatus().name() : ""))
+                .filter(b -> b.getStatus() == BookingStatus.CONFIRMED)
                 .collect(Collectors.groupingBy(
                         b -> b.getShow().getTheater().getName(),
                         Collectors.summingDouble(Booking::getAmountPaid)

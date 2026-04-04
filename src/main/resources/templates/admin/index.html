@@ -391,8 +391,8 @@
             .then(res => {
                 token = res.data;
                 localStorage.setItem('token', token);
-				 // Attach token globally for all API calls
-                axios.defaults.headers.common['Authorization'] = token;
+				// ── Add Bearer prefix when setting axios header
+                axios.defaults.headers.common['Authorization'] ='Bearer ' + token;
 
                 // ── Decode JWT to check role ──────────────────────────
                 const payload = JSON.parse(atob(token.split('.')[1]));

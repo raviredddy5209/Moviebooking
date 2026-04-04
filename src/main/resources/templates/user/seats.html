@@ -456,8 +456,11 @@ nav {
 // If no token found, redirect to login page
 const token = localStorage.getItem('token');
 if (!token) window.location.href = '/index.html';
-axios.defaults.headers.common['Authorization'] = token;
+//axios.defaults.headers.common['Authorization'] = token;
 
+// ── Always ensure Bearer prefix is present ────────────────────────────
+axios.defaults.headers.common['Authorization'] = 
+    token.startsWith('Bearer ') ? token : 'Bearer ' + token;
 // ── READ SHOW DATA FROM localStorage ─────────────────────────────────
 // User clicked a show time in home.html
 // home.html saved: localStorage.setItem('selectedShow', JSON.stringify({...}))

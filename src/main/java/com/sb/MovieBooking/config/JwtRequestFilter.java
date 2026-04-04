@@ -40,7 +40,12 @@ public class JwtRequestFilter extends OncePerRequestFilter {
         if (authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
             jwt = authorizationHeader.substring(7);           // "Bearer eyJ..." → "eyJ..."
             try {
-                username = jwtUtil.extractUsername(jwt);      // Parse JWT → get username
+                username = jwtUtil.extractUsername(jwt); 
+                
+                System.out.println("JWT: " + jwt);
+                System.out.println("Extracted user: " + username);
+                
+                // Parse JWT → get username
             } catch (Exception e) {
                 // Invalid JWT → username stays null
             }
@@ -49,6 +54,7 @@ public class JwtRequestFilter extends OncePerRequestFilter {
         // If we have valid username + no existing auth
         if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
             UserDetails userDetails = userDetailsService.loadUserByUsername(username);
+            System.out.println("Valid: " + jwtUtil.validateToken(jwt, userDetails));
 
             // Validate JWT signature + expiration
             if (jwtUtil.validateToken(jwt, userDetails)) {

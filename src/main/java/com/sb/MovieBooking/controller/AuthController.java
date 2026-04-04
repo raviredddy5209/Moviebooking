@@ -1,10 +1,10 @@
 package com.sb.MovieBooking.controller;
- 
-
 import com.sb.MovieBooking.model.LoginRequest;
 import com.sb.MovieBooking.model.Role;
 import com.sb.MovieBooking.model.User;
 import com.sb.MovieBooking.repository.UserRepository;
+import com.sb.MovieBooking.service.UserService;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -17,17 +17,53 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-
-@Controller
-public class AuthController {
-
-    @Autowired
-    private UserRepository userRepository;
-
-    @Autowired
-    private PasswordEncoder passwordEncoder;
  
-    
+    @Controller
+    public class AuthController {
+
+        @Autowired
+        private UserService userService;
+
+        // ── Show register page ─────────────────────────────
+        @GetMapping("/register")
+        public String registerPage(Model model) {
+
+            // INPUT: none
+            model.addAttribute("user", new User());
+
+            // OUTPUT: returns register HTML page
+            return "auth/register";
+        }
+
+        // ── Handle register form submit ────────────────────
+        @PostMapping("/register")
+        public String registerUser(@ModelAttribute User user) {
+
+            // INPUT: User (form data)
+
+            userService.registerUser(user);
+
+            // OUTPUT: redirect to login page
+            return "redirect:/login?registered=true";
+        }
+
+        // ── Static page mappings (no service needed) ───────
+        @GetMapping("/admin/dashboard")
+        public String adminDashboard() {
+            return "admin/dashboard";
+        }
+
+        @GetMapping("/user/home")
+        public String userHome() {
+            return "user/home";
+        }
+
+        @GetMapping("/user/seats")
+        public String seatsPage() {
+            return "user/seats";
+        }
+    }
+   
 //    @GetMapping("/login")
 //    public String loginPage(Model model) {
 //        return "auth/login";
@@ -52,14 +88,14 @@ public class AuthController {
     		serves templates/auth/login.html custom login page
     		spring security calls  this for /login GET REQUESTS
     */
-
+/**
     @GetMapping("/register")
     public String registerPage(Model model) {
         model.addAttribute("user", new User());
         return "auth/register";
     }/* new user() becomes the backing bean for th:object="${user}" in the form
     
-    */
+    
 
     @PostMapping("/register")
     public String registerUser(@ModelAttribute User user) {
@@ -73,7 +109,7 @@ public class AuthController {
     * hashes password before saving
     * shows success message in login page
     *
-    */
+    
     @GetMapping("/admin/dashboard")
     public String adminDashboard() {
         return "admin/dashboard";
@@ -88,7 +124,7 @@ public class AuthController {
  @GetMapping("/user/seats")
  public String seatsPage() {
      return "user/seats";
- }
+ }*/
 
     /* @GetMapping("/postLogin")
     public String postLogin(Authentication auth, Model model) {
@@ -106,7 +142,7 @@ public class AuthController {
 				auth.getAuthorities() contains ROLE_ADMIN or ROLE_USER.
 
 				Redirects to different dashboards based on role.*/
-    }
+   // }
 
 
 								/*Browser → /login

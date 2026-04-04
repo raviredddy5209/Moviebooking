@@ -14,9 +14,13 @@ public class BookingDto {
     private LocalDateTime showTime;
     private List<String> seats;
     private double totalAmount;
-	public Long getShowId() {
-		return showId;
-	}
+ // ── Add booking ID to DTO ─────────────────────────────────────────────
+ // Needed for cancel button to know which booking to cancel
+ private Long id;
+ private BookingStatus status;
+ private LocalDateTime bookedAt;
+
+  private String bookingRef;
 	public void setShowId(Long showId) {
 		this.showId = showId;
 	}
@@ -62,8 +66,29 @@ public class BookingDto {
 	}
 	public void setTotalAmount(double totalAmount) {
 		this.totalAmount = totalAmount;
-	}
+	}		
 
-    // getters & setters
-    
+	 public Long getId() { return id; }
+	 public void setId(Long id) { this.id = id; }
+		public Long getShowId() {
+			return showId;
+		}
+		public BookingStatus getStatus() {
+			return status;
+		}
+		public void setStatus(BookingStatus status) {
+			this.status = status;
+		}
+		public LocalDateTime getBookedAt() {
+			return bookedAt;
+		}
+		public void setBookedAt(LocalDateTime bookedAt) {
+			this.bookedAt = bookedAt;
+		}
+		public String getBookingRef() {
+			return bookingRef;
+		}
+		public void setBookingRef(String bookingRef) {
+			this.bookingRef = bookingRef;
+		}
 }

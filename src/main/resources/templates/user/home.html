@@ -418,6 +418,10 @@ nav {
   margin-bottom: 6px;
   font-weight: 600;
 }
+.booking-badge.cancelled {
+  background: #fee2e2;
+  color: #dc2626;
+}
 @keyframes fadeCard { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
 .movie-card:hover { transform: translateY(-4px); box-shadow: 0 12px 32px var(--shadow); }
 .movie-poster {
@@ -856,7 +860,7 @@ async function showBookings() {
     try {
         const res = await axios.get('/user/bookings');
         const bookings = res.data;
-
+		console.log(bookings);
         const container = document.getElementById('bookingsContainer');
         const moviesGrid = document.getElementById('moviesGrid');
 
@@ -898,7 +902,10 @@ async function showBookings() {
 		        }
 
 		        <div class="booking-info">
-		            <div class="booking-badge">CONFIRMED</div>
+		      <!--    <div class="booking-badge">CONFIRMED</div>-->
+					<div class="booking-badge ${b.status === 'CANCELLED' ? 'cancelled' : ''}">
+					    ${b.status}
+					</div>
 
 		            <div class="booking-title">${b.movieTitle}</div>
 
@@ -917,6 +924,18 @@ async function showBookings() {
 		            <div class="booking-amount">
 		                ₹${b.totalAmount}
 		            </div>
+				 
+							${b.status === 'CONFIRMED' ? `
+							    <button class="btn-book" style="margin-top:10px;background:#888"
+							        onclick="event.stopPropagation();cancelBooking('${b.bookingRef}')">
+							        Cancel Booking
+							    </button>
+							` : `
+							    <div style="margin-top:10px;font-size:0.8rem;color:var(--muted);font-weight:500;">
+							        This booking is cancelled
+							    </div>
+							`}
+							
 		        </div>
 		    </div>`;
 		}).join('');
@@ -1246,7 +1265,18 @@ function selectShow(showId, movieTitle, theater, showTime, movieId) {
     showToast(`Show selected: ${theater} at ${time} — Seat selection coming next!`);
      window.location.href = `/user/seats?showId=${showId}`; // ← uncomment when seats page is ready
 }
-
+async function cancelBooking(bookingRef) {
+	console.log('cancel booking called with id:',bookingRef);
+  if (!confirm("Are you sure you want to cancel this booking?")) return;
+try{
+  await axios.put(`/user/bookings/show/${bookingRef}/cancel`);
+  showToast("Booking cancelled");
+  showBookings();}
+  catch (e) {
+          console.error(e);
+          showToast("Error cancelling booking");
+      }
+}
 // ── SEARCH ──────────────────────────────────────────────
 let searchTimeout;
 function handleSearch(val) {

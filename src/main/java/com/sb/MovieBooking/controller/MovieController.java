@@ -1,29 +1,98 @@
 package com.sb.MovieBooking.controller;
 
-import com.sb.MovieBooking.entity.Booking;
 import com.sb.MovieBooking.entity.Movie;
-import com.sb.MovieBooking.entity.Theater;
 import com.sb.MovieBooking.model.ShowRequest;
 import com.sb.MovieBooking.entity.Show;
-import com.sb.MovieBooking.repository.BookingRepository;
-import com.sb.MovieBooking.repository.MovieRepository;
-import com.sb.MovieBooking.repository.SeatRepository;
-import com.sb.MovieBooking.repository.ShowRepository;
-import com.sb.MovieBooking.repository.TheaterRepository;
-
-import jakarta.transaction.Transactional;
+import com.sb.MovieBooking.service.MovieService;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.File;
 import java.io.IOException;
-import java.nio.file.*;
 import java.util.List;
-import java.util.UUID;
 
+@RestController
+@RequestMapping("/admin/movies")
+public class MovieController {
+
+    @Autowired
+    private MovieService movieService;
+
+    // ── GET ALL MOVIES ─────────────────────────
+    @GetMapping
+    public List<Movie> getAllMovies() {
+
+        // INPUT: none
+        // OUTPUT: List<Movie>
+
+        return movieService.getAllMovies();
+    }
+
+    // ── ADD MOVIE ──────────────────────────────
+    @PostMapping("/add")
+    public ResponseEntity<Movie> addMovie(@RequestBody Movie movie) {
+
+        // INPUT: Movie JSON
+        // OUTPUT: saved Movie
+
+        return ResponseEntity.ok(movieService.addMovie(movie));
+    }
+
+    // ── ADD MOVIE WITH IMAGE ───────────────────
+    @PostMapping("/upload")
+    public ResponseEntity<Movie> addMovieWithImage(
+            @RequestParam String title,
+            @RequestParam String description,
+            @RequestParam Integer durationMinutes,
+            @RequestParam(required = false) String imageUrl,
+            @RequestParam(required = false) MultipartFile imageFile) throws IOException {
+
+        // INPUT: form-data (title, desc, file/url)
+        // OUTPUT: saved Movie
+
+        return ResponseEntity.ok(
+                movieService.addMovieWithImage(
+                        title, description, durationMinutes, imageUrl, imageFile
+                )
+        );
+    }
+
+    // ── DELETE MOVIE ───────────────────────────
+    @DeleteMapping("/{id}")
+    public ResponseEntity<String> deleteMovie(@PathVariable Long id) {
+
+        // INPUT: movieId
+        // OUTPUT: success message
+
+        movieService.deleteMovie(id);
+        return ResponseEntity.ok("Movie deleted");
+    }
+
+    // ── ADD SHOW ───────────────────────────────
+    @PostMapping("/shows")
+    public ResponseEntity<Show> addShow(@RequestBody ShowRequest req) {
+
+        // INPUT: ShowRequest (movieId, theaterId, time, prices)
+        // OUTPUT: saved Show
+
+        return ResponseEntity.ok(movieService.addShow(req));
+    }
+
+    // ── GET SHOWS ──────────────────────────────
+    @GetMapping("/{movieId}/shows")
+    public List<Show> getShows(@PathVariable Long movieId) {
+
+        // INPUT: movieId
+        // OUTPUT: List<Show>
+
+        return movieService.getShows(movieId);
+    }
+}
+
+
+/**
 @RestController
 @RequestMapping("/admin/movies")
 public class MovieController {
@@ -47,7 +116,7 @@ public class MovieController {
 	 * @GetMapping("/public/movies/{id}/shows") public List<Show>
 	 * getShowsPublic(@PathVariable Long id) { // findByMovieId() → SELECT * FROM
 	 * shows WHERE movie_id = ? return showRepo.findByMovieId(id); }
-	 */
+	 
 	
 	
 	
@@ -67,11 +136,11 @@ public class MovieController {
     
     
     
-    /*// Get all movies for a theater
+    // Get all movies for a theater
     @GetMapping("/theater/{theaterId}")
     public List<Movie> getMoviesByTheater(@PathVariable Long theaterId) {
         return movieRepo.findByTheaterId(theaterId);
-    }*/
+    }
     
    //── ADD MOVIE (URL image) ─────────────────────────────────────────
     // URL: POST /admin/movies
@@ -158,7 +227,7 @@ public class MovieController {
     	/*Yes — now you have exactly what is needed to fix it. 
     	 * Your BookingRepository already has findByShowId(Long showId), 
     	 * which means you can delete bookings for each show before deleting the shows and then the movie
-    	 * . The foreign key error happens because bookings.show_id still points to the shows rows you are trying to delet*/
+    	 * . The foreign key error happens because bookings.show_id still points to the shows rows you are trying to delet
         List<Show> shows = showRepo.findByMovieId(id);
         for (Show show : shows) {
         	//Delete seats first
@@ -213,15 +282,15 @@ public class MovieController {
     *
     *
     *
-    */
+    
     // ── ADD SHOW ──────────────────────────────────────────────────────
     // URL: POST /admin/shows
     // Now takes BOTH movieId AND theaterId separately
     // This is the correct design — show links movie + theater
-  /*  
+   
     Movies section → Add Movie globally
     Theaters section → Add Show 
-                       (select which movie + time + pricing) */
+                       (select which movie + time + pricing) 
     
     @PostMapping("/shows")
     public ResponseEntity<Show> addShow(@RequestBody ShowRequest req){
@@ -261,11 +330,11 @@ public class MovieController {
         show.setMovie(movie);
         show.setTheater(movie.getTheater());
         return ResponseEntity.ok(showRepo.save(show));
-    }*/
+    }
 
     // Get shows for a movie
     @GetMapping("/{movieId}/shows")
     public List<Show> getShows(@PathVariable Long movieId) {
         return showRepo.findByMovieId(movieId);
     }
-}
+}*/

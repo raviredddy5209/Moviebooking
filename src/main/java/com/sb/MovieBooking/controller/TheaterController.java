@@ -4,80 +4,77 @@ import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import com.sb.MovieBooking.entity.Theater;
-import com.sb.MovieBooking.repository.TheaterRepository;
-
-import jakarta.transaction.Transactional;
+import com.sb.MovieBooking.service.TheaterService;
 
 @RestController
 @RequestMapping("/admin/theaters")
-@Transactional  
 public class TheaterController {
     
     @Autowired
-    private TheaterRepository repo;
+    private TheaterService theaterService; // ── Service layer for business logic ──
+
+    // ── CREATE Theater ───────────────────────────────────────────────
+    // URL: POST /admin/theaters
+    // Saves new theater into DB
     @PostMapping
     public Theater create(@RequestBody Theater theater) {
-        return repo.save(theater);
+
+        // ── Delegating to service ──
+        return theaterService.createTheater(theater);
     }
-    			/**
-    			 * Because the JavaScript call runs inside your logged‑in browser session, but Postman does not share that session or cookies.
 
-						What happens with the JavaScript call
-						You log in as admin in Chrome.
+    /**
+     * Because the JavaScript call runs inside your logged-in browser session, but Postman does not share that session or cookies.
 
-					Chrome stores the JSESSIONID cookie for localhost:8081.
-​
+        What happens with the JavaScript call
+        You log in as admin in Chrome.
 
-						When you run fetch('/admin/theaters', ...) in DevTools Console, the browser automatically sends that cookie with the request.
+        Chrome stores the JSESSIONID cookie for localhost:8081.
 
-					Spring Security sees ROLE_ADMIN, allows the request, controller runs, repo.save(theater) executes, Hibernate does INSERT, and MySQL saves the theater.
-​
+        When you run fetch('/admin/theaters', ...) in DevTools Console, the browser automatically sends that cookie with the request.
 
-					What happens with Postman
-						Postman is a separate client, with no knowledge of your browser cookie.
-​
+        Spring Security sees ROLE_ADMIN, allows the request, controller runs, repo.save(theater) executes, Hibernate does INSERT, and MySQL saves the theater.
 
-						When you send POST http://localhost:8081/admin/theaters from Postman:
+        What happens with Postman
+        Postman is a separate client, with no knowledge of your browser cookie.
 
-						It usually does not send a valid JSESSIONID cookie (unless you configure it).
-​
+        When you send POST http://localhost:8081/admin/theaters from Postman:
 
-						Spring Security treats you as anonymous, sees /admin/** requires ROLE_ADMIN, and either redirects to /login or returns 302/403.
+        It usually does not send a valid JSESSIONID cookie (unless you configure it).
 
-				The controller method is never executed, so no INSERT in the DB.
+        Spring Security treats you as anonymous, sees /admin/** requires ROLE_ADMIN, and either redirects to /login or returns 302/403.
 
-					So:
+        The controller method is never executed, so no INSERT in the DB.
 
- 
-		Browser console POST  = logged-in admin + JSESSIONID  → SAVE works
-		Postman POST          = anonymous (no session/role)   → SAVE blocked 
-    			 * 
-    			 * 
-    			 *....................Browser Console (logged in): fetch('/admin/theaters') → JSON
-    Postman (no login): POST → login.html page
+        So:
 
-    			 * 
-    			 * */
-    			 
-    
-    
+        Browser console POST  = logged-in admin + JSESSIONID  → SAVE works
+        Postman POST          = anonymous (no session/role)   → SAVE blocked 
+
+        ....................Browser Console (logged in): fetch('/admin/theaters') → JSON
+        Postman (no login): POST → login.html page
+     */
+
+    // ── GET all theaters ─────────────────────────────────────────────
+    // URL: GET /admin/theaters
+    // Returns list of all theaters
     @GetMapping
     public List<Theater> list() {
-        return repo.findAll();
+
+        // ── Delegating to service ──
+        return theaterService.getAllTheaters();
     }
+
+    // ── DELETE Theater ───────────────────────────────────────────────
+    // URL: DELETE /admin/theaters/{id}
+    // Deletes theater by ID
     @DeleteMapping("/{id}")
     public ResponseEntity<String> delete(@PathVariable Long id) {
-        repo.deleteById(id);
-        return ResponseEntity.ok("Theater deleted");
-}
 
+        // ── Delegating to service ──
+        return theaterService.deleteTheater(id);
+    }
 }

@@ -1,30 +1,27 @@
 package com.sb.MovieBooking.controller;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
-import com.sb.MovieBooking.repository.BookingRepository;
-import com.sb.MovieBooking.repository.SeatRepository;
-import com.sb.MovieBooking.repository.ShowRepository;
-
-import jakarta.transaction.Transactional;
+import com.sb.MovieBooking.service.ShowService;
 
 @RestController
 @RequestMapping("/admin/shows")
 public class ShowController {
-    @Autowired private ShowRepository showRepo;
-    @Autowired private SeatRepository seatRepo;
-    @Autowired private BookingRepository bookingRepo;
 
+    @Autowired
+    private ShowService showService; // ── Service layer handles deletion logic ──
+
+    // ── DELETE a show ────────────────────────────────────────────────
+    // URL: DELETE /admin/shows/{id}
+    // Deletes show along with its seats and bookings
+    // Used by admin to remove a show completely
     @DeleteMapping("/{id}")
-    @Transactional
     public ResponseEntity<String> deleteShow(@PathVariable Long id) {
-        seatRepo.deleteByShowId(id);
-        bookingRepo.deleteByShowId(id);
-        showRepo.deleteById(id);
-        return ResponseEntity.ok("Show deleted");
+
+        // ── Delegating deletion to service ──
+        // Controller remains thin (no DB logic here)
+        return showService.deleteShow(id);
     }
 }

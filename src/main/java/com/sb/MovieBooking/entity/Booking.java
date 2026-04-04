@@ -2,7 +2,9 @@ package com.sb.MovieBooking.entity;
 
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
+import java.util.List;
 
+import com.sb.MovieBooking.model.BookingStatus;
 import com.sb.MovieBooking.model.User;
 
 @Entity
@@ -27,11 +29,14 @@ public class Booking {
 
     // ── Which seat was booked ─────────────────────────────────────────
     // e.g. "A1", "D5", "G10"
+ //   private List<String> seatNumbers;
     private String seatNumber;
 
     // ── Section booked ────────────────────────────────────────────────
     // GOLD, SILVER, or DIAMOND
     private String section;
+  //  @Column(name = "booking_ref")
+    private String bookingRef;
 
     // ── Amount paid at time of booking ───────────────────────────────
     // Stored so price changes don't affect old bookings
@@ -40,7 +45,8 @@ public class Booking {
 
     // ── When booking was made ─────────────────────────────────────────
     private LocalDateTime bookedAt = LocalDateTime.now();
-
+    @Enumerated(EnumType.STRING)
+    private BookingStatus status=BookingStatus.CONFIRMED;
     // ── Constructors ──────────────────────────────────────────────────
     public Booking() {}
 
@@ -65,4 +71,20 @@ public class Booking {
 
     public LocalDateTime getBookedAt() { return bookedAt; }
     public void setBookedAt(LocalDateTime bookedAt) { this.bookedAt = bookedAt; }
+
+	public BookingStatus getStatus() {
+		return status;
+	}
+
+	public void setStatus(BookingStatus status) {
+		this.status = status;
+	}
+
+	public String getBookingRef() {
+		return bookingRef;
+	}
+
+	public void setBookingRef(String bookingRef) {
+		this.bookingRef = bookingRef;
+	}
 }

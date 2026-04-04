@@ -2,18 +2,35 @@ package com.sb.MovieBooking.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.sb.MovieBooking.model.LoginRequest;
-import com.sb.MovieBooking.util.JwtUtil;
+import com.sb.MovieBooking.service.AuthService;
+//Frontend → Controller → Service → Spring Security → JWT → Controller → Frontend
+@RestController
+@RequestMapping("/api/auth")
+public class ApiAuthController {
 
+    @Autowired
+    private AuthService authService;
+ /** CONTROLLER ROLE:
+ // - Takes login request (email, password) from frontend
+ // - Calls service
+ // - Returns JWT token to frontend
+    									*/
+    
+    @PostMapping("/login")
+    public ResponseEntity<String> login(@RequestBody LoginRequest req) {
+    	 // INPUT: LoginRequest (email, password)
+        String token = authService.login(req);
+     // OUTPUT: "Bearer <jwt-token>"
+        return ResponseEntity.ok(token);
+    }
+    }
+/*
 @RestController
 @RequestMapping("/api/auth")
 public class ApiAuthController {
@@ -50,3 +67,4 @@ public class ApiAuthController {
         return ResponseEntity.ok("Bearer " + jwtToken);
     }
 }
+*/

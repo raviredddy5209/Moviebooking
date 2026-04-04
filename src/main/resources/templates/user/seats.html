@@ -610,25 +610,59 @@ function renderRows(seats) {
 // ── RENDER SINGLE SEAT ────────────────────────────────────────────────
 function renderSeat(seat) {
     const isBooked = seat.isBooked;
-    const num = seat.seatNumber.slice(1); // just the number part e.g. "1" from "A1"
+    const isSelected = selectedSeats.some(s => s.seatNumber === seat.seatNumber);
+    const num = seat.seatNumber.slice(1);
+
     return `<button
-        class="seat ${isBooked ? 'booked' : ''}"
+        class="seat ${isBooked ? 'booked' : ''} ${isSelected ? 'selected' : ''}"
         id="seat-${seat.id}"
         data-id="${seat.id}"
         data-number="${seat.seatNumber}"
         data-section="${seat.section}"
         data-booked="${isBooked}"
-        onclick="toggleSeat(this)"
+        onclick='onSeatClick(${JSON.stringify(seat)})'
         ${isBooked ? 'disabled' : ''}
         title="${seat.seatNumber}"
     >${num}</button>`;
 }
+async function onSeatClick(seat) {
 
+    const showId = selectedShow.showId;
+
+    // ── IF ALREADY SELECTED → UNLOCK ──
+    const exists = selectedSeats.find(s => s.seatNumber === seat.seatNumber);
+
+    if (exists) {
+
+        await unlockSeat(showId, seat.seatNumber);
+
+        selectedSeats = selectedSeats.filter(s => s.seatNumber !== seat.seatNumber);
+
+    } else {
+
+        try {
+            // ── LOCK BEFORE SELECT ──
+            await lockSeat(showId, seat.seatNumber);
+
+            selectedSeats.push({
+                id: seat.id,
+                seatNumber: seat.seatNumber,
+                section: seat.section
+            });
+
+        } catch (e) {
+            return;
+        }
+    }
+
+    updateBookingBar();
+    loadSeats(); // refresh UI
+}
 // ── TOGGLE SEAT SELECTION ─────────────────────────────────────────────
 // Called when user clicks a seat button
 // Adds or removes seat from selectedSeats array
 // Updates booking bar at bottom
-function toggleSeat(btn) {
+/*function toggleSeat(btn) {
     const id = btn.dataset.id;
     const number = btn.dataset.number;
     const section = btn.dataset.section;
@@ -644,7 +678,7 @@ function toggleSeat(btn) {
     }
 
     updateBookingBar();
-}
+}*/
 
 // ── UPDATE BOOKING BAR ────────────────────────────────────────────────
 // Shows selected seats and total price at bottom of screen
@@ -669,6 +703,7 @@ function updateBookingBar() {
         bookBtn.disabled = true;
     } else {
         const seatNames = selectedSeats.map(s => s.number).join(', ');
+	 //  const seatNames = selectedSeats
         document.getElementById('selectedSeatsInfo').innerHTML =
             `Selected: <span>${seatNames}</span>`;
         document.getElementById('totalAmount').innerHTML =
@@ -676,6 +711,37 @@ function updateBookingBar() {
         bookBtn.disabled = false;
     }
 }
+// ── LOCK SEAT ─────────────────────────────
+async function lockSeat(showId, seatNumber) {
+    try {
+        await axios.post('/user/seats/lock', {
+            showId: showId,
+            seats:[{ seatNumber : seatNumber}]
+        });
+        console.log("Locked:", seatNumber);
+    } catch (e) {
+        showToast("Seat just got locked by someone else", "error");
+        throw e;
+    }
+}
+
+// ── UNLOCK SEAT ───────────────────────────
+async function unlockSeat(showId, seatNumber) {
+    try {
+        await axios.post('/user/seats/unlock', {
+            showId: showId,
+            seatNumber:[{seatNumber : seatNumber}]  
+        });
+        console.log("Unlocked:", seatNumber);
+    } catch (e) {
+        console.error("Unlock failed", e);
+    }
+}
+
+
+
+
+
 
 // ── CONFIRM BOOKING ───────────────────────────────────────────────────
 // Called when user clicks "Book Now"
@@ -689,25 +755,34 @@ async function confirmBooking() {
     bookBtn.disabled = true;
 
     try {
-        // ── Book each selected seat ───────────────────────────────────
-        // POST /user/seats/book for each seat
-        const results = [];
-        for (const seat of selectedSeats) {
-            const res = await axios.post('/user/seats/book', {
-                showId: parseInt(showId),
-                seatNumber: seat.number,
-                section: seat.section
-            });
-            results.push(res.data);
-        }
+        // ── Send ALL seats in ONE request ─────────────────────────────
+        // Backend generates ONE bookingRef for all seats
+        // This groups them into ONE card in My Bookings
+      /**  const res = await axios.post('/user/seats/book', {
+            showId: parseInt(showId),
+            seats: selectedSeats.map(s => ({
+                seatNumber: s.number,
+                section: s.section
+            }))*/
+			
+			const res = await axios.post('/user/seats/book', {
+			            showId: parseInt(showId),
+			            seats: selectedSeats.map(s => ({
+			                seatNumber: s.seatNumber,
+							section: s.section
+			            }))
+			
+			
+        });
+
+        const data = res.data;
 
         // ── Show success modal ────────────────────────────────────────
-        const seatNames = selectedSeats.map(s => s.number).join(', ');
-        const total = results.reduce((sum, r) => sum + (r.amountPaid || 0), 0);
-
+        const seatNames = data.seats.join(', ');
+		
         document.getElementById('confirmedSeats').textContent = seatNames;
         document.getElementById('confirmedDetails').textContent =
-            `${selectedShow.movieTitle || 'Movie'} · ${selectedShow.theater || ''} · ₹${total} paid`;
+            `${selectedShow.movieTitle || 'Movie'} · ${selectedShow.theater || ''} · ₹${data.totalAmount} paid`;
 
         document.getElementById('successModal').classList.add('open');
 

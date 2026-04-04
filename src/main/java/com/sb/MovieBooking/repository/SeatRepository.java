@@ -21,4 +21,6 @@ public interface SeatRepository extends JpaRepository<Seat, Long> {
     Seat findByShowIdAndSeatNumber(Long showId, String seatNumber);
     
     void deleteByShowId(Long showId);
+ // ── Find all locked seats
+    List<Seat> findByIsLockedTrue();
 }

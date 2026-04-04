@@ -1,5 +1,7 @@
 package com.sb.MovieBooking.entity;
 
+import java.time.LocalDateTime;
+
 import jakarta.persistence.*;
 
 @Entity
@@ -30,6 +32,18 @@ public class Seat {
     // Using Boolean wrapper not boolean primitive (avoids null crash)
     private Boolean isBooked = false;
 
+    
+ // ── Seat Locking Fields ─────────────────────────────────────────────
+ // Used to temporarily reserve seats before payment
+
+ @Column(nullable = false)
+ private Boolean isLocked = false; // true = temporarily reserved
+
+ private String lockedBy; // email of user who locked the seat
+
+ private LocalDateTime lockTime; // when seat was locked
+    
+    
     // ── Constructors ──────────────────────────────────────────────────
     public Seat() {}
 
@@ -55,4 +69,29 @@ public class Seat {
 
     public Boolean getIsBooked() { return isBooked; }
     public void setIsBooked(Boolean isBooked) { this.isBooked = isBooked; }
+
+	public Boolean getIsLocked() {
+		return isLocked;
+	}
+
+	public void setIsLocked(Boolean isLocked) {
+		this.isLocked = isLocked;
+	}
+
+	public String getLockedBy() {
+		return lockedBy;
+	}
+
+	public void setLockedBy(String lockedBy) {
+		this.lockedBy = lockedBy;
+	}
+
+	public LocalDateTime getLockTime() {
+		return lockTime;
+	}
+
+	public void setLockTime(LocalDateTime lockTime) {
+		this.lockTime = lockTime;
+	}
+    
 }

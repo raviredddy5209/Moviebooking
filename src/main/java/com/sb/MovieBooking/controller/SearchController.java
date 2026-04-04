@@ -2,6 +2,88 @@ package com.sb.MovieBooking.controller;
 
 import com.sb.MovieBooking.entity.Movie;
 import com.sb.MovieBooking.entity.Show;
+import com.sb.MovieBooking.service.SearchService;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+import java.util.Map;
+
+// ── @RestController ──────────────────────────────────────────────────
+// Returns JSON (used by frontend)
+@RestController
+
+// ── BASE PATH ───────────────────────────────────────────────────────
+// All endpoints start with /public
+@RequestMapping("/public")
+public class SearchController {
+
+    // ── SERVICE LAYER (ONLY THIS IS USED) ────────────────────────────
+    @Autowired
+    private SearchService searchService;
+
+    // ────────────────────────────────────────────────────────────────
+    // 🔍 SEARCH API
+    // ────────────────────────────────────────────────────────────────
+    // URL: GET /public/search?q=abc
+    //
+    // CONTROLLER RECEIVES:
+    //   q → from URL
+    //
+    // CONTROLLER CALLS:
+    //   searchService.search(q)
+    //
+    // CONTROLLER RETURNS:
+    //   JSON → { movies: [...], theaters: [...] }
+    @GetMapping("/search")
+    public Map<String, Object> search(@RequestParam String q) {
+        return searchService.search(q);
+    }
+
+    // ────────────────────────────────────────────────────────────────
+    // 🎬 GET ALL MOVIES
+    // ────────────────────────────────────────────────────────────────
+    // URL: GET /public/movies
+    //
+    // CONTROLLER RECEIVES:
+    //   no input
+    //
+    // CONTROLLER CALLS:
+    //   searchService.getAllMovies()
+    //
+    // CONTROLLER RETURNS:
+    //   List<Movie>
+    @GetMapping("/movies")
+    public List<Movie> getAllMovies() {
+        return searchService.getAllMovies();
+    }
+
+    // ────────────────────────────────────────────────────────────────
+    // 🎟 GET SHOWS FOR MOVIE
+    // ────────────────────────────────────────────────────────────────
+    // URL: GET /public/movies/{id}/shows
+    //
+    // CONTROLLER RECEIVES:
+    //   id → movieId
+    //
+    // CONTROLLER CALLS:
+    //   searchService.getShowsForMovie(id)
+    //
+    // CONTROLLER RETURNS:
+    //   List<Show>
+    @GetMapping("/movies/{id}/shows")
+    public List<Show> getShowsForMovie(@PathVariable Long id) {
+        return searchService.getShowsForMovie(id);
+    }
+}
+
+
+
+
+/**
+import com.sb.MovieBooking.entity.Movie;
+import com.sb.MovieBooking.entity.Show;
 import com.sb.MovieBooking.entity.Theater;
 import com.sb.MovieBooking.repository.MovieRepository;
 import com.sb.MovieBooking.repository.ShowRepository;
@@ -125,4 +207,4 @@ public class SearchController {
         // SELECT * FROM shows WHERE movie_id = ?
         return showRepo.findByMovieId(id);
     }
-}
+}**/

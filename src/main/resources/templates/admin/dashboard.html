@@ -150,8 +150,10 @@ select.form-control option { background: var(--surface2); color: var(--text); }
   <!-- CHANGE: ANALYTICS TAB START -->
   <div id="tab-analytics" class="tab-content">
 
-    <h2>Analytics Dashboard</h2>
-
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;">
+      <h2>Analytics Dashboard</h2>
+     
+    </div>
     <div class="stats-row" style="grid-template-columns: repeat(4,1fr);">
       <div class="stat-card">
         <div class="stat-number" id="totalBookings">—</div>
@@ -171,22 +173,61 @@ select.form-control option { background: var(--surface2); color: var(--text); }
       </div>
     </div>
 
+	<div class="analytics-section">
+		<div style="display:flex;justify-content:space-between;align-items:center;">
     <h3>All Bookings</h3>
+	<button class="btn-primary" onclick="toggleSection(this)">Collapse</button></div>
     <table>
       <tbody id="bookingsTable"></tbody>
     </table>
+	</div>
+	<div class="analytics-section">
+	  <div style="display:flex;justify-content:space-between;align-items:center;">
+	    <h3>Revenue by Movie</h3>
+	    <button class="btn-primary" onclick="toggleSection(this)">Collapse</button>
+	  </div>
+	  <table>
+	    <tbody id="movieRevenueTable"></tbody>
+	  </table>
+	</div>
+	<div class="analytics-section">
+	  <div style="display:flex;justify-content:space-between;align-items:center;">
+	    <h3>Revenue by Theater</h3>
+	    <button class="btn-primary" onclick="toggleSection(this)">Collapse</button>
+	  </div>
+	  <table>
+	    <tbody id="theaterRevenueTable"></tbody>
+	  </table>
+	</div>
+	<!-- Occupancy per show -->
 
-    <h3>Revenue by Movie</h3>
-    <table>
-      <tbody id="movieRevenueTable"></tbody>
-    </table>
-
-    <h3>Revenue by Theater</h3>
-    <table>
-      <tbody id="theaterRevenueTable"></tbody>
-    </table>
-
-  </div>
+	<div class="analytics-section">
+		<div style="display:flex;justify-content:space-between;align-items:center;">
+    <h3>Show Occupancy</h3>
+	<button class="btn-primary" onclick="toggleSection(this)">Collapse</button></div>
+	<table>
+	    <thead><tr><th>Movie</th><th>Theater</th><th>Show Time</th><th>Seats</th><th>Occupancy</th></tr></thead>
+	    <tbody id="occupancyTable"></tbody>
+	</table>
+</div>
+	<!-- Section breakdown -->	<div class="analytics-section">
+		<div style="display:flex;justify-content:space-between;align-items:center;">
+	<h3>Section Breakdown</h3>
+	<button class="btn-primary" onclick="toggleSection(this)">Collapse</button></div>
+	<table>
+	    <thead><tr><th>Section</th><th>Seats Sold</th><th>Revenue</th></tr></thead>
+	    <tbody id="sectionTable"></tbody>
+	</table>
+</div>
+	<!-- Daily bookings -->	<div class="analytics-section">
+		<div style="display:flex;justify-content:space-between;align-items:center;">
+	<h3>Bookings by Date</h3>
+	<button class="btn-primary" onclick="toggleSection(this)">Collapse</button></div>
+	<table>
+	    <thead><tr><th>Date</th><th>Bookings</th><th>Revenue</th></tr></thead>
+	    <tbody id="dailyTable"></tbody>
+	</table>
+  </div></div>
   <!-- CHANGE: ANALYTICS TAB END -->
   
   
@@ -198,7 +239,7 @@ select.form-control option { background: var(--surface2); color: var(--text); }
       <button class="btn-primary" onclick="openAddShowModal()">+ Add Show</button>
     </div>
     <div id="showsByTheater"><div class="loading">Loading...</div></div>
-  </div>
+  
 
 </div>
 
@@ -530,6 +571,17 @@ async function addTheater() {
     } catch(e) { showToast('Failed to add theater', 'error'); }
 }
 
+let analyticsCollapsed = false;
+
+function toggleSection(button) {
+    const section = button.closest('.analytics-section');
+    const table = section.querySelector('table');
+
+    const isHidden = table.style.display === 'none';
+
+    table.style.display = isHidden ? 'table' : 'none';
+    button.textContent = isHidden ? 'Collapse' : 'Expand';
+}
 // ── DELETE THEATER ────────────────────────────────────────────────────
 async function deleteTheater(id) {
     if (!confirm('Delete this theater?')) return;
@@ -620,16 +672,134 @@ async function deleteShow(id) {
 // CHANGE: ANALYTICS DATA LOADER
 async function loadAnalytics() {
     try {
-        const stats = (await axios.get('/admin/analytics/stats')).data;
-        const bookings = (await axios.get('/admin/analytics/bookings')).data;
-        const movieRevenue = (await axios.get('/admin/analytics/revenue-by-movie')).data;
-        const theaterRevenue = (await axios.get('/admin/analytics/revenue-by-theater')).data;
+     //   const stats = (await axios.get('/admin/analytics/stats')).data;
+       // const bookings = (await axios.get('/admin/analytics/bookings')).data;
+        //const movieRevenue = (await axios.get('/admin/analytics/revenue-by-movie')).data;
+        //const theaterRevenue = (await axios.get('/admin/analytics/revenue-by-theater')).data;
+		
+		
+		const [
+		    statsRes,
+		    bookingsRes,
+		    movieRevRes,
+		    theaterRevRes,
+		    showRevRes,
+		    byDateRes,
+		    topMoviesRes,
+		    sectionsRes,
+		    occupancyRes
+		] = await Promise.all([
+		    axios.get('/admin/analytics/stats'),
+		    axios.get('/admin/analytics/bookings'),
+		    axios.get('/admin/analytics/revenue-by-movie'),
+		    axios.get('/admin/analytics/revenue-by-theater'),
+		    axios.get('/admin/analytics/revenue-by-show'),
+		    axios.get('/admin/analytics/bookings-by-date'),
+		    axios.get('/admin/analytics/top-movies'),
+		    axios.get('/admin/analytics/section-breakdown'),
+		    axios.get('/admin/analytics/occupancy')
+		]);
+		
+		const stats = statsRes.data;
+		const bookings = bookingsRes.data;
+		const movieRevenue = movieRevRes.data;
+		const theaterRevenue = theaterRevRes.data;
+		const sections = sectionsRes.data;
+		const byDate = byDateRes.data;
+		const occupancy = occupancyRes.data;
 
         document.getElementById('totalBookings').textContent = stats.totalBookings;
         document.getElementById('confirmedBookings').textContent = stats.confirmed;
         document.getElementById('cancelledBookings').textContent = stats.cancelled;
         document.getElementById('totalRevenue').textContent = "₹" + stats.totalRevenue;
+		
+		// ── Occupancy table ───────────────────────────────────────────
+		 /**       document.getElementById('occupancyTable').innerHTML =
+		            occupancy.map(o => `
+		            <tr>
+		                <td>${o.movie}</td>
+		                <td>${o.theater}</td>
+		                <td>${new Date(o.showTime).toLocaleString('en-IN', {
+		                    day:'numeric', month:'short',
+		                    hour:'2-digit', minute:'2-digit'
+		                })}</td>
+		                <td>${o.booked} / ${o.totalSeats}</td>
+		                <td>
+		                    <div style="background:#1c1c28;border-radius:4px;height:8px;width:100px">
+		                        <div style="background:${o.occupancyPct > 75 ? '#4ade80' : o.occupancyPct > 40 ? '#e8ff47' : '#ff6b6b'};
+		                            width:${o.occupancyPct}%;height:100%;border-radius:4px"></div>
+		                    </div>
+		                    ${o.occupancyPct}%
+		                </td>
+		            </tr>`).join('');
+*/					const grouped = {};
 
+					// Group by theater
+					occupancy.forEach(o => {
+					    if (!grouped[o.theater]) {
+					        grouped[o.theater] = [];
+					    }
+					    grouped[o.theater].push(o);
+					});
+
+					let html = '';
+
+					Object.keys(grouped).forEach(theater => {
+
+					    // Theater header row
+					    html += `
+					        <tr style="background:#1c1c28;">
+					            <td colspan="5" style="font-weight:700;color:#e8ff47;padding:10px;">
+					                🎭 ${theater}
+					            </td>
+					        </tr>
+					    `;
+
+					    // Shows inside theater
+					    grouped[theater].forEach(o => {
+					        html += `
+					        <tr>
+					            <td>${o.movie}</td>
+					            <td>—</td>
+					            <td>${new Date(o.showTime).toLocaleString('en-IN', {
+					                day:'numeric', month:'short',
+					                hour:'2-digit', minute:'2-digit'
+					            })}</td>
+					            <td>${o.booked} / ${o.totalSeats}</td>
+					            <td>
+					                <div style="background:#1c1c28;border-radius:4px;height:8px;width:100px">
+					                    <div style="background:${
+					                        o.occupancyPct > 75 ? '#4ade80' :
+					                        o.occupancyPct > 40 ? '#e8ff47' : '#ff6b6b'
+					                    };
+					                    width:${o.occupancyPct}%;height:100%;border-radius:4px"></div>
+					                </div>
+					                ${o.occupancyPct}%
+					            </td>
+					        </tr>`;
+					    });
+					});
+
+					document.getElementById('occupancyTable').innerHTML = html;
+		        // ── Section breakdown ─────────────────────────────────────────
+		        document.getElementById('sectionTable').innerHTML =
+		            sections.map(sec => `
+		            <tr>
+		                <td>${sec.section}</td>
+		                <td>${sec.count} seats</td>
+		                <td>₹${sec.revenue}</td>
+		            </tr>`).join('');
+
+		        // ── Daily bookings ────────────────────────────────────────────
+		        document.getElementById('dailyTable').innerHTML =
+		            byDate.map(d => `
+		            <tr>
+		                <td>${d.date}</td>
+		                <td>${d.bookings} bookings</td>
+		                <td>₹${d.revenue}</td>
+		            </tr>`).join('');
+		
+		//All Bookings Table
         document.getElementById('bookingsTable').innerHTML =
             bookings.map(b => `
             <tr>
@@ -663,6 +833,7 @@ async function loadAnalytics() {
     } catch (e) {
         console.error(e);
         alert("Failed to load analytics");
+		showToast('Failed to load analytics', 'error');
     }
 }
 
